@@ -13,8 +13,8 @@ class Block {
     public toString() {
         return `Block -
           Timestamp: ${this.timestamp}
-          Last Hash: ${this.lastHash}
-          Hash     : ${this.hash}
+          Last Hash: ${this.lastHash.substring(0, 10)}
+          Hash     : ${this.hash.substring(0, 10)}
           Data     : ${this.data}`
     }
 
@@ -25,14 +25,19 @@ class Block {
     static mineBlock(lastBlock: Block, data: BlockData) {
         const timestamp = new Date()
         const lastHash = lastBlock.hash
-        const hash = Block.hash(timestamp, lastHash, data)
+        const hash = Block.genHash(timestamp, lastHash, data)
 
         return new this(timestamp, lastHash, hash, data)
     }
 
-    static hash(timestamp: Date, lastHash: string, data: BlockData) {
+    static genHash(timestamp: Date, lastHash: string, data: BlockData) {
         const stringifiedData = typeof data === 'string' ? data : JSON.stringify(data)
         return SHA256(`${timestamp}${lastHash}${stringifiedData}`).toString()
+    }
+
+    static blockHash(block: Block) {
+        const { timestamp, lastHash, data } = block
+        return Block.genHash(timestamp, lastHash, data)
     }
 }
 
