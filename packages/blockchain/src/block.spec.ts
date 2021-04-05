@@ -21,13 +21,13 @@ describe('Block', () => {
   })
 
   it('returns a stringified instance', () => {
-    const now = new Date()
+    const now = Date.now()
     const lastHash = 'last-hash'
     const data = [{}]
     const block = new Block(now, lastHash, hash, data)
 
     expect(block.toString()).toStrictEqual(`Block -
-          Timestamp: ${now}
+          Timestamp: ${new Date(now).toISOString()}
           Last Hash: ${lastHash}
           Hash     : ${hash.substring(0, 10)}
           Data     : ${data}`)
@@ -39,7 +39,7 @@ describe('Block', () => {
     expect(genesisBlock).toBeInstanceOf(Block)
 
     expect(genesisBlock.toString()).toStrictEqual(`Block -
-          Timestamp: ${new Date()}
+          Timestamp: 1899-12-31T00:00:00.000Z
           Last Hash: -----
           Hash     : f1r57-h45h
           Data     : `)
@@ -53,7 +53,7 @@ describe('Block', () => {
     const minedBlock = Block.mineBlock(genesisBlock, 'First mined block')
 
     expect(minedBlock.toString()).toStrictEqual(`Block -
-          Timestamp: ${minedBlock.timestamp}
+          Timestamp: ${new Date(minedBlock.timestamp).toISOString()}
           Last Hash: ${genesisBlock.hash.substring(0, 10)}
           Hash     : ${hash.substring(0, 10)}
           Data     : First mined block`)

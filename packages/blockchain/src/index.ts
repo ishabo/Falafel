@@ -1,7 +1,9 @@
 import Block, { BlockData } from './block'
 
+export type Chain = Array<Block>
+
 class Blockchain {
-  public chain: Array<Block>
+  public chain: Chain
 
   constructor() {
     this.chain = [Block.gensis()]
@@ -15,14 +17,18 @@ class Blockchain {
     return block
   }
 
-  public isValidChain(chain: Array<Block>): boolean {
+  public isValidChain(chain: Chain): boolean {
     if (JSON.stringify(chain[0]) !== JSON.stringify(this.chain[0])) {
+
+      console.log('yaykes')
       return false
     }
 
     for (let i = 1; i < chain.length; i++) {
       const block = chain[i]
-      const lastBlock = chain[i - 1]
+      const lastBlock = chain[i-1]
+
+      console.log(i, block.lastHash, lastBlock.hash, block.hash, Block.blockHash(block))
 
       if (block.lastHash !== lastBlock.hash || block.hash !== Block.blockHash(block)) {
         return false
@@ -32,7 +38,7 @@ class Blockchain {
     return true
   }
 
-  public replaceChain(newChain: Array<Block>) {
+  public replaceChain(newChain: Chain) {
     if (newChain.length <= this.chain.length) {
       console.log('Received chain is not longer than the current chain.')
       return
