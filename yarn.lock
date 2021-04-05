@@ -8,6 +8,8 @@ __metadata:
 "3urooba@workspace:.":
   version: 0.0.0-use.local
   resolution: "3urooba@workspace:."
+  dependencies:
+    typescript: ^4.2.3
   languageName: unknown
   linkType: soft
 
@@ -16,28 +18,20 @@ __metadata:
   resolution: "@3urooba/app@workspace:packages/app"
   dependencies:
     "@3urooba/blockchain": "workspace:packages/blockchain"
+    "@3urooba/eslint-config": "workspace:packages/config/eslint"
+    "@3urooba/typescript-config": "workspace:packages/config/typescript"
     "@types/body-parser": ^1.19.0
     "@types/express": ^4.17.11
     "@types/jest": ^26.0.22
-    "@types/node": ^14.14.37
-    "@typescript-eslint/eslint-plugin": ^4.20.0
-    "@typescript-eslint/parser": ^4.20.0
+    "@types/ws": ^7.4.1
     "@yarnpkg/pnpify": ^2.4.0
     body-parser: ^1.19.0
-    eslint: ^7.23.0
-    eslint-config-airbnb-typescript: ^12.3.1
-    eslint-config-prettier: ^8.1.0
-    eslint-plugin-import: ^2.22.1
-    eslint-plugin-jsx-a11y: ^6.4.1
-    eslint-plugin-prettier: ^3.3.1
     express: ^4.17.1
     jest: ^26.6.3
     nodemon: ^2.0.7
-    prettier: ^2.2.1
     rimraf: ^3.0.2
     ts-jest: ^26.5.4
-    ts-node: ^9.1.1
-    typescript: ^4.2.3
+    ws: ^7.4.4
   languageName: unknown
   linkType: soft
 
@@ -45,24 +39,40 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@3urooba/blockchain@workspace:packages/blockchain"
   dependencies:
+    "@3urooba/eslint-config": "workspace:packages/config/eslint"
+    "@3urooba/typescript-config": "workspace:packages/config/typescript"
     "@types/crypto-js": ^4.0.1
     "@types/jest": ^26.0.22
-    "@types/node": ^14.14.37
+    crypto-js: ^4.0.0
+    jest: ^26.6.3
+    jest-date-mock: ^1.0.8
+    nodemon: ^2.0.7
+    ts-jest: ^26.5.4
+  languageName: unknown
+  linkType: soft
+
+"@3urooba/eslint-config@workspace:packages/config/eslint":
+  version: 0.0.0-use.local
+  resolution: "@3urooba/eslint-config@workspace:packages/config/eslint"
+  dependencies:
+    "@3urooba/typescript-config": "workspace:packages/config/typescript"
     "@typescript-eslint/eslint-plugin": ^4.20.0
     "@typescript-eslint/parser": ^4.20.0
-    "@yarnpkg/pnpify": ^2.4.0
-    crypto-js: ^4.0.0
     eslint: ^7.23.0
     eslint-config-airbnb-typescript: ^12.3.1
     eslint-config-prettier: ^8.1.0
     eslint-plugin-import: ^2.22.1
     eslint-plugin-jsx-a11y: ^6.4.1
     eslint-plugin-prettier: ^3.3.1
-    jest: ^26.6.3
-    jest-date-mock: ^1.0.8
-    nodemon: ^2.0.7
     prettier: ^2.2.1
-    ts-jest: ^26.5.4
+  languageName: unknown
+  linkType: soft
+
+"@3urooba/typescript-config@workspace:packages/config/typescript":
+  version: 0.0.0-use.local
+  resolution: "@3urooba/typescript-config@workspace:packages/config/typescript"
+  dependencies:
+    "@types/node": ^14.14.37
     ts-node: ^9.1.1
     typescript: ^4.2.3
   languageName: unknown
@@ -1098,6 +1108,15 @@ __metadata:
   version: 1.0.0
   resolution: "@types/treeify@npm:1.0.0"
   checksum: f7b82d91a4be51d5b93fb1e245ea71768e06a567daa1ff84fe075c3e62ce90f2703fa8258f0f093f92816416fe2f41c3177e5005114613adbdddabe2ddc3e593
+  languageName: node
+  linkType: hard
+
+"@types/ws@npm:^7.4.1":
+  version: 7.4.1
+  resolution: "@types/ws@npm:7.4.1"
+  dependencies:
+    "@types/node": "*"
+  checksum: 69a752f6ffd809d170098e84bad046fa6589d9485e8e5292d2c48f8b8014b6b58779e4fac07a808895de79f595032ef055bb36b41945c6e1cc9d63010a0f50fb
   languageName: node
   linkType: hard
 

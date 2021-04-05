@@ -1,5 +1,6 @@
-import Blockchain from '.'
 import { advanceTo, clear } from 'jest-date-mock'
+
+import Blockchain from '.'
 
 describe('Blockchian', () => {
     let bc: Blockchain

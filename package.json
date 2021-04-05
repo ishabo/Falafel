@@ -2,6 +2,12 @@
     "name": "3urooba",
     "private": true,
     "workspaces": [
-        "packages/*"
-    ]
+        "packages/blockchain",
+        "packages/app",
+        "packages/config/typescript",
+        "packages/config/eslint"
+    ],
+    "dependencies": {
+        "typescript": "^4.2.3"
+    }
 }
