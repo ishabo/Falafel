@@ -3,6 +3,8 @@
     "private": true,
     "workspaces": [
         "packages/blockchain",
+        "packages/wallet",
+        "packages/util",
         "packages/app",
         "packages/config/typescript",
         "packages/config/eslint",
