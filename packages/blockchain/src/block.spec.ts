@@ -1,5 +1,5 @@
 import Block from './block'
-import cryptoJs from 'crypto-js'
+import Util from '@dahab/util'
 import { advanceBy, advanceTo, clear } from 'jest-date-mock'
 import { DEFAULT_DIFFICULTY } from '@dahab/constants'
 
@@ -8,11 +8,11 @@ jest.mock('@dahab/constants', () => ({
   MINE_RATE: 3000
 }))
 
-jest.mock('crypto-js', () => ({
-  SHA256: jest.fn(),
+jest.mock('@dahab/util', () => ({
+  genHash: jest.fn(),
 }))
 
-const mockSha256 = cryptoJs.SHA256 as jest.Mock
+const mockSha256 = Util.genHash as jest.Mock
 const hashWithLeeding0Zeros = '3456ed85d634e4b12f43b8da73516b4abbabc7d5b3efe3dbde4e786ff1d7779'
 const hashWithLeeding1Zeros = '0a35ed85d634e4b12f43b8da73516b4abbabc7d5b3efe3dbde4e786ff1d7779'
 const hashWithLeeding2Zeros = '0045ed85d634e4b12f43b8da73516b4abbabc7d5b3efe3dbde4e786ff1d7779'

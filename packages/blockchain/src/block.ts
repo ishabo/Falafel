@@ -1,4 +1,4 @@
-import { SHA256 } from 'crypto-js'
+import Util from '@dahab/util'
 import { DEFAULT_DIFFICULTY, MINE_RATE } from '@dahab/constants'
 
 export type BlockData = string | Record<string, string> | Array<Record<string, string>>
@@ -51,7 +51,7 @@ class Block {
 
   static genHash(timestamp: Timestamp, lastHash: Hash, data: BlockData, nonce: number, difficulty: number) {
     const stringifiedData = typeof data === 'string' ? data : JSON.stringify(data)
-    return SHA256(`${timestamp}${lastHash}${stringifiedData}${nonce}${difficulty}`).toString()
+    return Util.genHash(`${timestamp}${lastHash}${stringifiedData}${nonce}${difficulty}`).toString()
   }
 
   static blockHash(block: Block) {
