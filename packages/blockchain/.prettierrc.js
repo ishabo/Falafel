@@ -1,1 +1,1 @@
-module.exports = require('@3urooba/eslint-config/prettier.config')
+module.exports = require('@dahab/eslint-config/prettier.config')

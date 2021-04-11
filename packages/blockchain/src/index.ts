@@ -6,7 +6,7 @@ class Blockchain {
   public chain: Chain
 
   constructor() {
-    this.chain = [Block.gensis()]
+    this.chain = [Block.genesis()]
   }
 
   public addBlock(data: BlockData): Block {
@@ -20,15 +20,12 @@ class Blockchain {
   public isValidChain(chain: Chain): boolean {
     if (JSON.stringify(chain[0]) !== JSON.stringify(this.chain[0])) {
 
-      console.log('yaykes')
       return false
     }
 
     for (let i = 1; i < chain.length; i++) {
       const block = chain[i]
       const lastBlock = chain[i-1]
-
-      console.log(i, block.lastHash, lastBlock.hash, block.hash, Block.blockHash(block))
 
       if (block.lastHash !== lastBlock.hash || block.hash !== Block.blockHash(block)) {
         return false

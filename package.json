@@ -1,11 +1,12 @@
 {
-    "name": "3urooba",
+    "name": "dahab",
     "private": true,
     "workspaces": [
         "packages/blockchain",
         "packages/app",
         "packages/config/typescript",
-        "packages/config/eslint"
+        "packages/config/eslint",
+        "packages/config/constants"
     ],
     "dependencies": {
         "typescript": "^4.2.3"

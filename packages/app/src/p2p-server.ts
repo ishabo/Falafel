@@ -1,5 +1,5 @@
 import Websocket from 'ws'
-import Blockchain, { Chain } from '@3urooba/blockchain'
+import Blockchain, { Chain } from '@dahab/blockchain'
 
 const P2P_PORT = Number(process.env.P2P_PORT || 5001)
 const peers = process.env.PEERS ? process.env.PEERS.split(',') : []

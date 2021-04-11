@@ -1,25 +1,25 @@
 {
-    "name": "@3urooba/blockchain",
-    "version": "1.0.0",
-    "main": "src/index.ts",
-    "license": "MIT",
-    "scripts": {
-        "test": "jest --watchAll",
-        "coverage": "jest --coverage",
-        "lint": "../../node_modules/.bin/eslint src",
-        "format:fix": "../../node_modules/.bin/prettier --write './{.,**}/*.{ts,js,json}'"
-    },
-    "devDependencies": {
-        "@3urooba/eslint-config": "workspace:packages/config/eslint",
-        "@3urooba/typescript-config": "workspace:packages/config/typescript",
-        "@types/jest": "^26.0.22",
-        "jest": "^26.6.3",
-        "nodemon": "^2.0.7",
-        "ts-jest": "^26.5.4"
-    },
-    "dependencies": {
-        "@types/crypto-js": "^4.0.1",
-        "crypto-js": "^4.0.0",
-        "jest-date-mock": "^1.0.8"
-    }
+  "name": "@dahab/blockchain",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "license": "MIT",
+  "scripts": {
+    "test": "jest --watchAll",
+    "coverage": "jest --coverage",
+    "lint": "../../node_modules/.bin/eslint src",
+    "format:fix": "../../node_modules/.bin/prettier --write './{.,**}/*.{ts,js,json}'"
+  },
+  "devDependencies": {
+    "@dahab/eslint-config": "workspace:packages/config/eslint",
+    "@dahab/typescript-config": "workspace:packages/config/typescript",
+    "@types/jest": "^26.0.22",
+    "jest": "^26.6.3",
+    "nodemon": "^2.0.7",
+    "ts-jest": "^26.5.4"
+  },
+  "dependencies": {
+    "@types/crypto-js": "^4.0.1",
+    "crypto-js": "^4.0.0",
+    "jest-date-mock": "^1.0.8"
+  }
 }

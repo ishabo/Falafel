@@ -1,9 +1,9 @@
 {
-  "name": "@3urooba/eslint-config",
+  "name": "@dahab/eslint-config",
   "version": "1.0.0",
   "license": "MIT",
   "dependencies": {
-    "@3urooba/typescript-config": "workspace:packages/config/typescript",
+    "@dahab/typescript-config": "workspace:packages/config/typescript",
     "@typescript-eslint/eslint-plugin": "^4.20.0",
     "@typescript-eslint/parser": "^4.20.0",
     "eslint": "^7.23.0",

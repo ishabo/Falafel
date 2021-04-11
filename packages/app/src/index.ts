@@ -1,13 +1,12 @@
 import express, { Response, Request } from 'express'
-import Blockchain from '@3urooba/blockchain'
+import Blockchain from '@dahab/blockchain'
 import P2pServer from './p2p-server'
 
 const HTTP_PORT = process.env.HTTP_PORT || 3001
-
 const app = express()
 
 const bc = new Blockchain()
-const p2pServer = new P2pServer(bc)
+  const p2pServer = new P2pServer(bc)
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
