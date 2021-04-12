@@ -32,6 +32,10 @@ app.get('/transactions', (req: Request, res: Response) => {
   res.json(tp.transactions)
 })
 
+app.get('/public-key', (req: Request, res: Response) => {
+  res.json({ publicKey: wallet.publicKey })
+})
+
 app.post('/transact', (req: Request, res: Response) => {
   const { recipient, amount } = req.body
   const transaction = wallet.createTransaction(recipient, amount, tp)
