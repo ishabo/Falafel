@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@dahab/blockchain": "workspace:packages/blockchain",
+    "@dahab/wallet": "workspace:packages/wallet",
     "@types/express": "^4.17.11",
     "@types/ws": "^7.4.1",
     "express": "^4.17.1",

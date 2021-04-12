@@ -46,4 +46,8 @@ class Wallet {
   }
 }
 
+export {
+  Transaction,
+  TransactionPool
+}
 export default Wallet

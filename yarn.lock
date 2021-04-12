@@ -447,6 +447,7 @@ __metadata:
     "@dahab/blockchain": "workspace:packages/blockchain"
     "@dahab/eslint-config": "workspace:packages/config/eslint"
     "@dahab/typescript-config": "workspace:packages/config/typescript"
+    "@dahab/wallet": "workspace:packages/wallet"
     "@types/express": ^4.17.11
     "@types/jest": ^26.0.22
     "@types/ws": ^7.4.1
