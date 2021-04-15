@@ -19,13 +19,12 @@ class Blockchain {
 
   public isValidChain(chain: Chain): boolean {
     if (JSON.stringify(chain[0]) !== JSON.stringify(this.chain[0])) {
-
       return false
     }
 
     for (let i = 1; i < chain.length; i++) {
       const block = chain[i]
-      const lastBlock = chain[i-1]
+      const lastBlock = chain[i - 1]
 
       if (block.lastHash !== lastBlock.hash || block.hash !== Block.blockHash(block)) {
         return false
@@ -49,6 +48,11 @@ class Blockchain {
     console.log('Replacing blockchain with the new chain.')
     this.chain = newChain
   }
+}
+
+export {
+  Block,
+  BlockData
 }
 
 export default Blockchain

@@ -1,5 +1,6 @@
-import Util from '@dahab/util'
+import Util from '@falafel/util'
 import Wallet from '.'
+import { MINING_REWARD } from '@falafel/constants'
 
 interface Output {
   amount: number
@@ -18,7 +19,7 @@ class Transaction {
   }
 
   public update(senderWallet: Wallet, recipient: string, amount: number): Transaction {
-    const senderOutput = this.outputs.find(output => output.address === senderWallet.publicKey)
+    const senderOutput = this.outputs.find((output) => output.address === senderWallet.publicKey)
     if (!senderOutput) {
       console.log(`Could not find output maching the senderWallet.publicKey`)
       return this
@@ -35,12 +36,18 @@ class Transaction {
     return this
   }
 
+  static transactionWithOutputs(senderWallet: Wallet, outputs: Array<Output>): Transaction {
+    const transaction = new this()
+    transaction.outputs.push(...outputs)
+    Transaction.signTransaction(transaction, senderWallet)
+    return transaction
+  }
+
   static newTransaction(
     senderWallet: Wallet,
     recipient: string,
     amount: number
   ): Transaction | undefined {
-    const transaction = new this()
 
     if (amount > senderWallet.balance) {
       console.log(`Amount: ${amount} exceeds balance.`)
@@ -54,11 +61,13 @@ class Transaction {
 
     const recipientAmount = { amount, address: recipient }
 
-    transaction.outputs.push(...[senderUpdatedAmount, recipientAmount])
+    return Transaction.transactionWithOutputs(senderWallet, [senderUpdatedAmount, recipientAmount])
+  }
 
-    Transaction.signTransaction(transaction, senderWallet)
-
-    return transaction
+  static rewardTransaction(minderWallet: Wallet, blockchainWallet: Wallet) {
+    return Transaction.transactionWithOutputs(blockchainWallet, [{
+      amount: MINING_REWARD, address: minderWallet.publicKey
+    }])
   }
 
   static signTransaction(transaction: Transaction, senderWallet: Wallet) {
@@ -66,7 +75,7 @@ class Transaction {
       timestamp: Date.now(),
       amount: senderWallet.balance,
       address: senderWallet.publicKey,
-      signature: senderWallet.sign(Util.genHash(transaction.outputs))
+      signature: senderWallet.sign(Util.genHash(transaction.outputs)),
     }
   }
 

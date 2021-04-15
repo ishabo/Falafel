@@ -1,7 +1,9 @@
-import Util from '@dahab/util'
-import { DEFAULT_DIFFICULTY, MINE_RATE } from '@dahab/constants'
+import Util from '@falafel/util'
+import { DEFAULT_DIFFICULTY, MINE_RATE } from '@falafel/constants'
+import { Transaction } from '@falafel/wallet'
 
-export type BlockData = string | Record<string, string> | Array<Record<string, string>>
+export type BlockData = Array<Transaction> | string 
+
 type Timestamp = number
 type Hash = string
 
@@ -13,8 +15,7 @@ class Block {
     public data: BlockData,
     public nonce: number,
     public difficulty: number = DEFAULT_DIFFICULTY
-  ) {
-  }
+  ) {}
 
   public toString() {
     const timestamp = new Date(this.timestamp)
@@ -28,14 +29,21 @@ class Block {
   }
 
   static genesis() {
-    return new this(new Date(0, 0, 0 ,0).getTime(), '-----', 'f1r57-h45h', [], 0, DEFAULT_DIFFICULTY)
+    return new this(
+      new Date(0, 0, 0, 0).getTime(),
+      '-----',
+      'f1r57-h45h',
+      [],
+      0,
+      DEFAULT_DIFFICULTY
+    )
   }
 
   static mineBlock(lastBlock: Block, data: BlockData) {
     let hash: string
     let timestamp: number
     let { difficulty } = lastBlock
-    let nonce = 0 
+    let nonce = 0
     const lastHash = lastBlock.hash
 
     do {
@@ -49,7 +57,13 @@ class Block {
     return new this(timestamp, lastHash, hash, data, nonce, difficulty)
   }
 
-  static genHash(timestamp: Timestamp, lastHash: Hash, data: BlockData, nonce: number, difficulty: number) {
+  static genHash(
+    timestamp: Timestamp,
+    lastHash: Hash,
+    data: BlockData,
+    nonce: number,
+    difficulty: number
+  ) {
     const stringifiedData = typeof data === 'string' ? data : JSON.stringify(data)
     return Util.genHash(`${timestamp}${lastHash}${stringifiedData}${nonce}${difficulty}`).toString()
   }
@@ -60,7 +74,7 @@ class Block {
   }
 
   static adjustDifficulty(lastBlock: Block, currentTime: number): number {
-    let { difficulty } = {...lastBlock}
+    let { difficulty } = { ...lastBlock }
     difficulty = lastBlock.timestamp + MINE_RATE > currentTime ? difficulty + 1 : difficulty - 1
     return difficulty
   }

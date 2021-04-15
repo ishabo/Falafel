@@ -1,5 +1,5 @@
 {
-  "name": "@dahab/wallet",
+  "name": "@falafel/wallet",
   "version": "1.0.0",
   "main": "src/index.ts",
   "license": "MIT",
@@ -10,12 +10,12 @@
     "format:fix": "../../node_modules/.bin/prettier --write './{.,**}/*.{ts,js,json}'"
   },
   "dependencies": {
-    "@dahab/util": "workspace:packages/util",
+    "@falafel/util": "workspace:packages/util",
     "@types/elliptic": "^6.4.12"
   },
   "devDependencies": {
-    "@dahab/eslint-config": "workspace:packages/config/eslint",
-    "@dahab/typescript-config": "workspace:packages/config/typescript",
+    "@falafel/eslint-config": "workspace:packages/config/eslint",
+    "@falafel/typescript-config": "workspace:packages/config/typescript",
     "@types/jest": "^26.0.22",
     "jest": "^26.6.3",
     "nodemon": "^2.0.7",

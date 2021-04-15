@@ -1,5 +1,5 @@
 {
-  "name": "@dahab/constants",
+  "name": "@falafel/constants",
   "version": "1.0.0",
   "license": "MIT",
   "main": "src/index.ts"

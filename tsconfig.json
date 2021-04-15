@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./packages",
+    "path": {
+      "@falafel/app/*":["packages/app/*"],
+      "@falafel/blockchain/*":["packages/blockchain/*"],
+      "@falafel/wallet/*":["packages/wallet/*"],
+      "@falafel/typescript-config/*":["packages/config/typescript/*"],
+      "@falafel/eslint-config/*":["packages/config/eslint/*"],
+      "@falafel/constants/*":["packages/config/constants/*"]
+    }
+  }
+}

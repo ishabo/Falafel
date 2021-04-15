@@ -70,16 +70,13 @@ describe('Blockchian', () => {
     expect(bc.chain[1].lastHash === bc.chain[0].hash)
     expect(bc.chain[2].lastHash === bc.chain[1].hash)
     expect(bc.chain[3].lastHash === bc.chain[2].hash)
-
   })
 
   it('validates a valid chain', () => {
     const data = 'Second chain first block'
     const newBlock1 = new Block(Date.now(), 'f1r57-h45h', '11111111111', data, 1, 3)
 
-    jest
-      .spyOn(Block, 'mineBlock')
-      .mockReturnValue(newBlock1)
+    jest.spyOn(Block, 'mineBlock').mockReturnValue(newBlock1)
 
     jest.spyOn(Block, 'blockHash').mockReturnValue('11111111111')
 
@@ -107,9 +104,7 @@ describe('Blockchian', () => {
     const data = 'Second chain first block'
     const newBlock1 = new Block(Date.now(), 'f1r57-h45h', '11111111111', data, 1, 3)
 
-    jest
-      .spyOn(Block, 'mineBlock')
-      .mockReturnValue(newBlock1)
+    jest.spyOn(Block, 'mineBlock').mockReturnValue(newBlock1)
 
     jest.spyOn(Block, 'blockHash').mockReturnValue('11111111111')
 

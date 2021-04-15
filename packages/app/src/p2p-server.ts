@@ -1,13 +1,14 @@
 import Websocket from 'ws'
-import Blockchain, { Chain } from '@dahab/blockchain'
-import Wallet, { TransactionPool, Transaction } from '@dahab/wallet'
+import Blockchain, { Chain } from '@falafel/blockchain'
+import { TransactionPool, Transaction } from '@falafel/wallet'
 
 const P2P_PORT = Number(process.env.P2P_PORT || 5001)
 const peers = process.env.PEERS ? process.env.PEERS.split(',') : []
 
 enum MessageType {
   CHAIN = 'CHAIN',
-  TRANSACTION = 'TRNSACTION'
+  TRANSACTION = 'TRNSACTION',
+  CLEAR_TRANSACTION = 'CLEAR_TRANSACTION'
 }
 
 type Message = {
@@ -16,6 +17,8 @@ type Message = {
 } | {
   type: MessageType.TRANSACTION,
   transaction: Transaction
+} | {
+  type: MessageType.CLEAR_TRANSACTION
 }
 
 class P2pServer {
@@ -48,6 +51,12 @@ class P2pServer {
     })
   }
 
+  public broadcastClearTransaction() {
+    this.sockets.forEach(socket => socket.send(JSON.stringify({
+      type: MessageType.CLEAR_TRANSACTION
+    })))
+  }
+
   private connectSocket(socket: Websocket): void {
     this.sockets.push(socket)
     console.log('Socket connected')
@@ -77,6 +86,9 @@ class P2pServer {
           break
         case MessageType.TRANSACTION:
           this.transactionPool.updateOrAddTransaction(data.transaction)
+          break
+        case MessageType.CLEAR_TRANSACTION:
+          this.transactionPool.clear()
           break
       }
 

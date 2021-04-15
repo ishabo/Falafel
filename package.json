@@ -1,5 +1,5 @@
 {
-    "name": "dahab",
+    "name": "falafel",
     "private": true,
     "workspaces": [
         "packages/blockchain",

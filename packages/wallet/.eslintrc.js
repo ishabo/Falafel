@@ -1,1 +1,1 @@
-module.exports = require('@dahab/eslint-config/eslint.config')
+module.exports = require('@falafel/eslint-config/eslint.config')
