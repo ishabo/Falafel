@@ -1,7 +1,9 @@
 import Block from './block'
 import Util from '@falafel/util'
+import { Transaction } from '@falafel/wallet'
 import { advanceBy, advanceTo, clear } from 'jest-date-mock'
 import { DEFAULT_DIFFICULTY } from '@falafel/constants'
+import hex2Bin from 'hex-to-bin'
 
 jest.mock('@falafel/constants', () => ({
   DEFAULT_DIFFICULTY: 4,
@@ -13,11 +15,11 @@ jest.mock('@falafel/util', () => ({
 }))
 
 const mockSha256 = Util.genHash as jest.Mock
-const hashWithLeeding0Zeros = '3456ed85d634e4b12f43b8da73516b4abbabc7d5b3efe3dbde4e786ff1d7779'
-const hashWithLeeding1Zeros = '0a35ed85d634e4b12f43b8da73516b4abbabc7d5b3efe3dbde4e786ff1d7779'
-const hashWithLeeding2Zeros = '0045ed85d634e4b12f43b8da73516b4abbabc7d5b3efe3dbde4e786ff1d7779'
-const hashWithLeeding3Zeros = '0006ed85d634e4b12f43b8da73516b4abbabc7d5b3efe3dbde4e786ff1d7779'
-const hashWithLeeding4Zeros = '0000ed85d634e4b12f43b8da73516b4abbabc7d5b3efe3dbde4e786ff1d7779'
+const hashWithLeeding0Zeros = '9456ed85d634e4b12f43b8da73516b4abbabc7d5b3efe3dbde4e786ff1d7779' // hex2Bin => 10011010...
+const hashWithLeeding1Zeros = '5a35ed85d634e4b12f43b8da73516b4abbabc7d5b3efe3dbde4e786ff1d7779' // hex2Bin => 01011010...
+const hashWithLeeding2Zeros = '2f45ed85d634e4b12f43b8da73516b4abbabc7d5b3efe3dbde4e786ff1d7779' // hex2Bin => 00100101... 
+const hashWithLeeding3Zeros = '1456ed85d634e4b12f43b8da73516b4abbabc7d5b3efe3dbde4e786ff1d7779' // hex2Bin => 00010100... 
+const hashWithLeeding4Zeros = '0f5eed85d634e4b12f43b8da73516b4abbabc7d5b3efe3dbde4e786ff1d7779' // hex2Bin => 00001111... 
 
 describe('Block', () => {
   beforeEach(() => {
@@ -31,9 +33,9 @@ describe('Block', () => {
   it('returns a stringified instance', () => {
     const now = Date.now()
     const lastHash = 'last-hash'
-    const data = [{}]
+    const data = [] as Array<Transaction>
     const nonce = 0
-    const block = new Block(now, lastHash, hashWithLeeding4Zeros, data, nonce)
+    const block = new Block({timestamp: now, lastHash, hash: hashWithLeeding4Zeros, data, nonce})
 
     expect(block.toString()).toStrictEqual(`Block -
           Timestamp : ${new Date(now).toISOString()}
@@ -160,7 +162,7 @@ describe('Block', () => {
         expect(secondMinedBlock.timestamp).toStrictEqual(
           new Date(1984, 4, 22, 17, 0, 0).getTime() + timeSinceFirstBLock
         )
-        expect(secondMinedBlock.hash.substring(0, 2)).toStrictEqual('0'.repeat(2))
+        expect(hex2Bin(secondMinedBlock.hash).substring(0, 2)).toStrictEqual('0'.repeat(2))
         expect(mockSha256).toHaveBeenCalledTimes(6)
       })
     })

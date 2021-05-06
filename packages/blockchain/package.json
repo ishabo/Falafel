@@ -19,6 +19,7 @@
     "ts-jest": "^26.5.4"
   },
   "dependencies": {
-    "@falafel/util": "workspace:packages/util"
+    "@falafel/util": "workspace:packages/util",
+    "hex-to-bin": "^1.0.1"
   }
 }

@@ -460,6 +460,7 @@ __metadata:
     "@falafel/typescript-config": "workspace:packages/config/typescript"
     "@falafel/util": "workspace:packages/util"
     "@types/jest": ^26.0.22
+    hex-to-bin: ^1.0.1
     jest: ^26.6.3
     jest-date-mock: ^1.0.8
     nodemon: ^2.0.7
@@ -4569,6 +4570,13 @@ __metadata:
     inherits: ^2.0.3
     minimalistic-assert: ^1.0.1
   checksum: fceb7fb87e224f4b399212f902d3a34c3ed8512560868b56dde92f617fac9c66b501e583bab2996ed7493be5ab3385e05a69d2209fa6a9144391b22e1c2d245b
+  languageName: node
+  linkType: hard
+
+"hex-to-bin@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "hex-to-bin@npm:1.0.1"
+  checksum: 13fe2108f559eda7853c1dcb2e68b44b58b199d1a8fe1e6f74447e622c701889fcef8ff0329af023f7ed2f336176acece4111828d6799d8059f3a481704e767b
   languageName: node
   linkType: hard
 
