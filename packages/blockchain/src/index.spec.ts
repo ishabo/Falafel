@@ -1,4 +1,5 @@
-import { advanceTo, clear } from 'jest-date-mock'
+import { advanceTo, clear as clearDateMock } from 'jest-date-mock'
+import { Transaction } from '@falafel/wallet'
 
 import Blockchain from '.'
 import Block from './block'
@@ -6,22 +7,23 @@ import Block from './block'
 describe('Blockchian', () => {
   let bc: Blockchain
   let bc2: Blockchain
-  let errorMock = jest.fn();
-  let logMock = jest.fn();
-
-
+  let errorMock = jest.fn()
+  let logMock = jest.fn()
+  let blockHashSpy: jest.SpyInstance
 
   beforeEach(() => {
     advanceTo(new Date(1984, 4, 22, 17, 0, 0))
     bc = new Blockchain()
     bc2 = new Blockchain()
-    global.console.error = errorMock;
-    global.console.log = logMock;
-
+    global.console.error = errorMock
+    global.console.log = logMock
   })
 
   afterEach(() => {
-    clear()
+    clearDateMock()
+    if (blockHashSpy) {
+      blockHashSpy.mockRestore()
+    }
   })
 
   it('initializes with a genesis block', () => {
@@ -39,7 +41,14 @@ describe('Blockchian', () => {
 
   it('adds a new block', () => {
     const data = 'A new block was added'
-    const newBlock = new Block({timestamp: Date.now(), lastHash: 'f1r57-h45h', hash: 'a1a6da8674', data, nonce: 1, difficulty: 3})
+    const newBlock = new Block({
+      timestamp: Date.now(),
+      lastHash: 'f1r57-h45h',
+      hash: 'a1a6da8674',
+      data,
+      nonce: 1,
+      difficulty: 3,
+    })
     const mineBlockSpy = jest.spyOn(Block, 'mineBlock').mockReturnValueOnce(newBlock)
     bc.addBlock(data)
     expect(bc.chain.length).toStrictEqual(2)
@@ -60,9 +69,30 @@ describe('Blockchian', () => {
     const data1 = 'First block'
     const data2 = 'second block'
     const data3 = 'third block'
-    const newBlock1 = new Block({timestamp: Date.now(), lastHash: 'f1r57-h45h', hash: '11111111111', data: data1, nonce: 1, difficulty: 3})
-    const newBlock2 = new Block({ timestamp: Date.now(), lastHash: '11111111111', hash: '2222222222', data: data2, nonce: 2, difficulty: 4})
-    const newBlock3 = new Block({timestamp: Date.now(), lastHash: '2222222222', hash: '3333333333', data: data3, nonce: 3, difficulty: 3})
+    const newBlock1 = new Block({
+      timestamp: Date.now(),
+      lastHash: 'f1r57-h45h',
+      hash: '11111111111',
+      data: data1,
+      nonce: 1,
+      difficulty: 3,
+    })
+    const newBlock2 = new Block({
+      timestamp: Date.now(),
+      lastHash: '11111111111',
+      hash: '2222222222',
+      data: data2,
+      nonce: 2,
+      difficulty: 4,
+    })
+    const newBlock3 = new Block({
+      timestamp: Date.now(),
+      lastHash: '2222222222',
+      hash: '3333333333',
+      data: data3,
+      nonce: 3,
+      difficulty: 3,
+    })
 
     jest
       .spyOn(Block, 'mineBlock')
@@ -79,20 +109,6 @@ describe('Blockchian', () => {
     expect(bc.chain[3].lastHash === bc.chain[2].hash)
   })
 
-  it('validates a valid chain', () => {
-    const data = 'Second chain first block'
-    const newBlock1 = new Block({timestamp: Date.now(), lastHash: 'f1r57-h45h', hash: '11111111111', data, nonce: 1, difficulty: 3})
-
-    jest.spyOn(Block, 'mineBlock').mockReturnValue(newBlock1)
-
-    jest.spyOn(Block, 'blockHash').mockReturnValue('11111111111')
-
-    bc2.addBlock(data)
-
-    expect(bc.isValidChain(bc2.chain)).toBe(true)
-    expect(errorMock).toHaveBeenCalledTimes(0)
-  })
-
   it('invalidates a chain with a corrupt genesis block', () => {
     bc2.chain[0].data = 'Hacked data!'
 
@@ -103,18 +119,64 @@ describe('Blockchian', () => {
     bc2.chain[0].data = Block.genesis().data
     bc2.addBlock('Second chain first block')
     bc2.chain[1].data = 'Corrupt data'
-    jest.spyOn(Block, 'blockHash').mockReturnValue('2222222222')
+    blockHashSpy = jest.spyOn(Block, 'blockHash').mockReturnValue('2222222222')
+
+    expect(bc.isValidChain(bc2.chain)).toBe(false)
+
+  })
+
+  it('invalidates a block with jumped difficulty', () => {
+    bc2.addBlock('Second chain first block')
+    const lastBlock = bc2.chain[bc2.chain.length - 1]
+    const lastHash = lastBlock.hash
+    const timestamp = Date.now()
+    const nonce = 0
+    const data = [] as Array<Transaction>
+    const difficulty = lastBlock.difficulty - 2
+
+    const hash = Block.genHash({timestamp, lastHash, data, nonce, difficulty})
+    const badBlock = new Block({timestamp, lastHash, hash, data, nonce, difficulty})
+
+    bc2.chain.push(badBlock)
 
     expect(bc.isValidChain(bc2.chain)).toBe(false)
   })
 
-  it('replaces the chain with a valid chain', () => {
+  it('validates a valid chain', () => {
     const data = 'Second chain first block'
-    const newBlock1 = new Block({timestamp: Date.now(), lastHash: 'f1r57-h45h', hash: '11111111111', data, nonce: 1, difficulty: 3})
+    const newBlock1 = new Block({
+      timestamp: Date.now(),
+      lastHash: 'f1r57-h45h',
+      hash: '11111111111',
+      data,
+      nonce: 1,
+      difficulty: 3,
+    })
 
     jest.spyOn(Block, 'mineBlock').mockReturnValue(newBlock1)
 
-    jest.spyOn(Block, 'blockHash').mockReturnValue('11111111111')
+    blockHashSpy = jest.spyOn(Block, 'blockHash').mockReturnValue('11111111111')
+
+    bc2.addBlock(data)
+
+    expect(bc.isValidChain(bc2.chain)).toBe(true)
+    expect(errorMock).toHaveBeenCalledTimes(0)
+  })
+
+  it('replaces the chain with a valid chain', () => {
+    const data = 'Second chain first block'
+    const newBlock1 = new Block({
+      timestamp: Date.now(),
+      lastHash: 'f1r57-h45h',
+      hash: '11111111111',
+      data,
+      nonce: 1,
+      difficulty: 3,
+    })
+
+    jest.spyOn(Block, 'mineBlock').mockReturnValue(newBlock1)
+
+    blockHashSpy = jest.spyOn(Block, 'blockHash').mockReturnValue('11111111111')
 
     bc2.addBlock(data)
 

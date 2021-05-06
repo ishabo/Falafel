@@ -3,7 +3,7 @@ import { DEFAULT_DIFFICULTY, MINE_RATE } from '@falafel/constants'
 import { Transaction } from '@falafel/wallet'
 import hex2Bin from 'hex-to-bin'
 
-export type BlockData = Array<Transaction> | string 
+export type BlockData = Array<Transaction> | string
 
 type Timestamp = number
 type Hash = string
@@ -25,9 +25,14 @@ class Block {
   public nonce: number
   public difficulty: number
 
-  constructor(
-    {timestamp, lastHash, hash, data, nonce, difficulty = DEFAULT_DIFFICULTY} : BlockProps
-  ) {
+  constructor({
+    timestamp,
+    lastHash,
+    hash,
+    data,
+    nonce,
+    difficulty = DEFAULT_DIFFICULTY,
+  }: BlockProps) {
     this.timestamp = timestamp
     this.lastHash = lastHash
     this.hash = hash
@@ -48,15 +53,13 @@ class Block {
   }
 
   static genesis() {
-    return new this(
-      {
-        timestamp: new Date(0, 0, 0, 0).getTime(),
-        lastHash: '-----',
-        hash: 'f1r57-h45h',
-        data: [] as Array<Transaction>,
-        nonce: 0,
-      }
-    )
+    return new this({
+      timestamp: new Date(0, 0, 0, 0).getTime(),
+      lastHash: '-----',
+      hash: 'f1r57-h45h',
+      data: [] as Array<Transaction>,
+      nonce: 0,
+    })
   }
 
   static mineBlock(lastBlock: Block, data: BlockData) {
@@ -70,27 +73,27 @@ class Block {
       nonce++
       timestamp = Date.now()
       difficulty = Block.adjustDifficulty(lastBlock, timestamp)
-      hash = Block.genHash(timestamp, lastHash, data, nonce, difficulty)
+      hash = Block.genHash({ timestamp, lastHash, data, nonce, difficulty })
       // console.log(nonce)
     } while (hex2Bin(hash).substring(0, difficulty) !== '0'.repeat(difficulty))
 
     return new this({ timestamp, lastHash, hash, data, nonce, difficulty })
   }
 
-  static genHash(
-    timestamp: Timestamp,
-    lastHash: Hash,
-    data: BlockData,
-    nonce: number,
-    difficulty: number
-  ) {
+  static genHash({
+    timestamp,
+    lastHash,
+    data,
+    nonce,
+    difficulty,
+  }: Omit<BlockProps, 'hash'> & { difficulty: number }) {
     const stringifiedData = typeof data === 'string' ? data : JSON.stringify(data)
     return Util.genHash(`${timestamp}${lastHash}${stringifiedData}${nonce}${difficulty}`).toString()
   }
 
   static blockHash(block: Block) {
     const { timestamp, lastHash, data, nonce, difficulty } = block
-    return Block.genHash(timestamp, lastHash, data, nonce, difficulty)
+    return Block.genHash({timestamp, lastHash, data, nonce, difficulty})
   }
 
   static adjustDifficulty(lastBlock: Block, currentTime: number): number {

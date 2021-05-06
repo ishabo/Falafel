@@ -1,5 +1,5 @@
 import { INITIAL_BALANCE } from '@falafel/constants'
-import Blockchain, { Block, BlockData } from '@falafel/blockchain'
+import Blockchain, { BlockData } from '@falafel/blockchain'
 import Transaction from './transaction'
 import TransactionPool from './transaction-pool'
 import Wallet from '.'
@@ -13,6 +13,14 @@ describe('Wallet', () => {
     blockchain = new Blockchain()
     wallet = new Wallet()
     transactionPool = new TransactionPool()
+  })
+
+  it('it has a banalce', () => {
+    expect(wallet).toHaveProperty('balance')
+  })
+
+  it('it has a publicKey', () => {
+    expect(wallet).toHaveProperty('publicKey')
   })
 
   describe('creating a transaction', () => {
