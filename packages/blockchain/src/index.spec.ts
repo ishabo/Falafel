@@ -2,7 +2,7 @@ import { advanceTo, clear as clearDateMock } from 'jest-date-mock'
 import { Transaction } from '@falafel/wallet'
 
 import Blockchain from '.'
-import Block from './block'
+import Block, {BlockData} from './block'
 
 describe('Blockchian', () => {
   let bc: Blockchain
@@ -40,7 +40,7 @@ describe('Blockchian', () => {
   })
 
   it('adds a new block', () => {
-    const data = 'A new block was added'
+    const data = ['A new block was added'] as unknown as BlockData
     const newBlock = new Block({
       timestamp: Date.now(),
       lastHash: 'f1r57-h45h',
@@ -50,7 +50,7 @@ describe('Blockchian', () => {
       difficulty: 3,
     })
     const mineBlockSpy = jest.spyOn(Block, 'mineBlock').mockReturnValueOnce(newBlock)
-    bc.addBlock(data)
+    bc.addBlock({data})
     expect(bc.chain.length).toStrictEqual(2)
     expect(bc.chain[bc.chain.length - 1].toString()).toMatchInlineSnapshot(`
       "Block -
@@ -66,9 +66,9 @@ describe('Blockchian', () => {
   })
 
   it('links every added block to the last one in chain', () => {
-    const data1 = 'First block'
-    const data2 = 'second block'
-    const data3 = 'third block'
+    const data1 = ['First block'] as unknown as BlockData
+    const data2 = ['second block'] as unknown as BlockData
+    const data3 = ['third block'] as unknown as BlockData
     const newBlock1 = new Block({
       timestamp: Date.now(),
       lastHash: 'f1r57-h45h',
@@ -100,9 +100,9 @@ describe('Blockchian', () => {
       .mockReturnValueOnce(newBlock2)
       .mockReturnValueOnce(newBlock3)
 
-    bc.addBlock(data1)
-    bc.addBlock(data2)
-    bc.addBlock(data3)
+    bc.addBlock({data: data1})
+    bc.addBlock({data: data2})
+    bc.addBlock({data: data3})
 
     expect(bc.chain[1].lastHash === bc.chain[0].hash)
     expect(bc.chain[2].lastHash === bc.chain[1].hash)
@@ -110,15 +110,15 @@ describe('Blockchian', () => {
   })
 
   it('invalidates a chain with a corrupt genesis block', () => {
-    bc2.chain[0].data = 'Hacked data!'
+    bc2.chain[0].data = ['Hacked data!'] as unknown as BlockData
 
     expect(bc.isValidChain(bc2.chain)).toBe(false)
   })
 
   it('invalidates a corrupt chain', () => {
     bc2.chain[0].data = Block.genesis().data
-    bc2.addBlock('Second chain first block')
-    bc2.chain[1].data = 'Corrupt data'
+    bc2.addBlock({ data: ['Second chain first block'] as unknown as BlockData })
+    bc2.chain[1].data = ['Corrupt data'] as unknown as BlockData
     blockHashSpy = jest.spyOn(Block, 'blockHash').mockReturnValue('2222222222')
 
     expect(bc.isValidChain(bc2.chain)).toBe(false)
@@ -126,7 +126,7 @@ describe('Blockchian', () => {
   })
 
   it('invalidates a block with jumped difficulty', () => {
-    bc2.addBlock('Second chain first block')
+    bc2.addBlock({data: [] as Array<Transaction>})
     const lastBlock = bc2.chain[bc2.chain.length - 1]
     const lastHash = lastBlock.hash
     const timestamp = Date.now()
@@ -143,7 +143,7 @@ describe('Blockchian', () => {
   })
 
   it('validates a valid chain', () => {
-    const data = 'Second chain first block'
+    const data = ['Second chain first block'] as unknown as BlockData
     const newBlock1 = new Block({
       timestamp: Date.now(),
       lastHash: 'f1r57-h45h',
@@ -157,14 +157,14 @@ describe('Blockchian', () => {
 
     blockHashSpy = jest.spyOn(Block, 'blockHash').mockReturnValue('11111111111')
 
-    bc2.addBlock(data)
+    bc2.addBlock({data})
 
     expect(bc.isValidChain(bc2.chain)).toBe(true)
     expect(errorMock).toHaveBeenCalledTimes(0)
   })
 
   it('replaces the chain with a valid chain', () => {
-    const data = 'Second chain first block'
+    const data = ['Second chain first block'] as unknown as BlockData
     const newBlock1 = new Block({
       timestamp: Date.now(),
       lastHash: 'f1r57-h45h',
@@ -178,7 +178,7 @@ describe('Blockchian', () => {
 
     blockHashSpy = jest.spyOn(Block, 'blockHash').mockReturnValue('11111111111')
 
-    bc2.addBlock(data)
+    bc2.addBlock({data})
 
     bc.replaceChain(bc2.chain)
 
@@ -188,7 +188,7 @@ describe('Blockchian', () => {
   })
 
   it('does not replace the chain with one of less than or equal to length', () => {
-    bc.addBlock('First block')
+    bc.addBlock({data: ['First block'] as unknown as BlockData})
 
     bc.replaceChain(bc2.chain)
 

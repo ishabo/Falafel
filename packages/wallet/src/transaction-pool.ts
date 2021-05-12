@@ -1,48 +1,48 @@
 import Transaction from './transaction'
+import { Chain } from '@falafel/blockchain'
+
+export type TransactionMap = Map<string, Transaction>
 
 class TransactionPool {
-  public transactions: Array<Transaction>
+  public transactionMap: TransactionMap
 
   constructor() {
-    this.transactions = []
-  }
-
-  public updateOrAddTransaction(transaction: Transaction) {
-    let transactionWithId = this.transactions.find(({ id }) => id === transaction.id)
-
-    if (transactionWithId) {
-      this.transactions[this.transactions.indexOf(transactionWithId)] = transaction
-    } else {
-      this.transactions.push(transaction)
-    }
-  }
-
-  public existingTransaction(address: string): Transaction | undefined {
-    return this.transactions.find((t) => t.input.address === address)
-  }
-
-  public validTransactions() {
-    return this.transactions.filter((transaction) => {
-      const outputTotal = transaction.outputs.reduce((total, output) => {
-        return total + output.amount
-      }, 0)
-
-      if (transaction.input.amount !== outputTotal) {
-        console.log(`Invalid transaction from ${transaction.input.address}.`)
-        return
-      }
-
-      if (!Transaction.verifyTransaction(transaction)) {
-        console.log(`Invalid signature from ${transaction.input.address}.`)
-        return
-      }
-
-      return transaction
-    })
+    this.transactionMap = new Map()
   }
 
   public clear() {
-    this.transactions = []
+    this.transactionMap.clear() 
+  }
+
+  public setTransaction(transaction: Transaction) {
+    this.transactionMap.set(transaction.id, transaction);
+  }
+
+  public setMap(transactionMap: TransactionMap) {
+    this.transactionMap = transactionMap;
+  }
+
+  public existingTransaction({ inputAddress }: { inputAddress: string }) {
+    const transactions = Array.from(this.transactionMap.values());
+
+    return transactions.find(transaction => transaction.input.address === inputAddress);
+  }
+
+  validTransactions() {
+    const transactions = Array.from(this.transactionMap.values());
+    return transactions.filter(Transaction.validTransaction)
+  }
+
+   public clearBlockchainTransactions({ chain }: { chain: Chain }) {
+    for (let i=1; i<chain.length; i++) {
+      const block = chain[i];
+
+      for (let transaction of block.data) {
+        if (transaction instanceof Transaction) {
+          this.transactionMap.delete(transaction.id);
+        }
+      }
+    }
   }
 }
 

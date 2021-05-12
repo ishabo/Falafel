@@ -6,61 +6,105 @@ import Wallet from '.'
 describe('TransactionPool', () => {
   let transactionPool: TransactionPool
   let transaction: Transaction
-  let wallet: Wallet
-  let blockchain: Blockchain
+  let senderWallet: Wallet
 
-  const recipient = 'r4nd-4adr355'
-  const amount = 30
+   beforeEach(() => {
+    transactionPool = new TransactionPool();
+    senderWallet = new Wallet();
+    transaction = new Transaction({
+      senderWallet,
+      recipient: 'fake-recipient',
+      amount: 50
+    });
+  });
 
-  beforeEach(() => {
-    blockchain = new Blockchain()
-    transactionPool = new TransactionPool()
-    wallet = new Wallet()
-    transaction = wallet.createTransaction(recipient, amount, blockchain, transactionPool) as Transaction
-  })
+  describe('setTransaction()', () => {
+    it('adds a transaction', () => {
+      transactionPool.setTransaction(transaction);
 
-  it('adds a transaction to the pool', () => {
-    expect(transactionPool.transactions.find((t) => t.id === transaction.id)).toStrictEqual(
-      transaction
-    )
-  })
+      expect(transactionPool.transactionMap.get(transaction.id))
+        .toBe(transaction);
+    });
+  });
 
-  it('updates a transaction in the pool', () => {
-    const oldTransaction = JSON.stringify(transaction)
-    const newTransaction = transaction.update(wallet, 'foo-4ddr355', 40)
-    transactionPool.updateOrAddTransaction(newTransaction)
+  describe('existingTransaction()', () => {
+    it('returns an existing transaction given an input address', () => {
+      transactionPool.setTransaction(transaction);
 
-    expect(
-      JSON.stringify(transactionPool.transactions.find((t) => t.id === newTransaction.id))
-    ).not.toStrictEqual(oldTransaction)
-  })
+      expect(
+        transactionPool.existingTransaction({ inputAddress: senderWallet.publicKey })
+      ).toBe(transaction);
+    });
+  });
 
-  it('clears transactions', () => {
-    transactionPool.clear()
-    expect(transactionPool.transactions).toStrictEqual([])
-  })
-  describe('mixing valid and corrupt transaction', () => {
+  describe('validTransactions()', () => {
     let validTransactions: Array<Transaction>
+    let errorMock: jest.Mock
 
     beforeEach(() => {
-      validTransactions = [...transactionPool.transactions]
-      for (let i = 0; i < 6; i++) {
-        wallet = new Wallet()
-        transaction = wallet.createTransaction(recipient, amount, blockchain, transactionPool) as Transaction
-        if (i % 2 === 0) {
-          transaction.input.amount = 99999 // corrupt transaction
+      validTransactions = [];
+      errorMock = jest.fn();
+      global.console.error = errorMock;
+
+      for (let i=0; i<10; i++) {
+        transaction = new Transaction({
+          senderWallet,
+          recipient: 'any-recipient',
+          amount: 30
+        });
+
+        if (i%3===0) {
+          transaction.input.amount = 999999;
+        } else if (i%3===1) {
+          transaction.input.signature = new Wallet().sign('foo');
         } else {
-          validTransactions.push(transaction)
+          validTransactions.push(transaction);
+        }
+
+        transactionPool.setTransaction(transaction);
+      }
+    });
+
+    it('returns valid transaction', () => {
+      expect(transactionPool.validTransactions()).toEqual(validTransactions);
+    });
+
+    it('logs errors for the invalid transactions', () => {
+      transactionPool.validTransactions();
+      expect(errorMock).toHaveBeenCalled();
+    });
+  });
+
+  describe('clear()', () => {
+    it('clears the transactions', () => {
+      transactionPool.clear();
+
+      expect(transactionPool.transactionMap.size).toStrictEqual(0);
+    });
+  });
+
+  describe('clearBlockchainTransactions()', () => {
+    it('clears the pool of any existing blockchain transactions', () => {
+      const blockchain = new Blockchain();
+      const expectedTransactionMap = new Map<string, Transaction>();
+
+      for (let i=0; i<6; i++) {
+        const transaction = new Wallet().createTransaction({
+          recipient: 'foo', amount: 20
+        });
+
+        transactionPool.setTransaction(transaction);
+
+        if (i%2===0) {
+          blockchain.addBlock({ data: [transaction] })
+        } else {
+          expectedTransactionMap.set(transaction.id, transaction);
         }
       }
-    })
 
-    it('shows a difference between valid and corrupt transactions ', () => {
-      expect(JSON.stringify(transactionPool.transactions)).not.toStrictEqual(JSON.stringify(validTransactions))
-    })
+      transactionPool.clearBlockchainTransactions({ chain: blockchain.chain });
 
-    it ('grabs valid transactions', () => {
-      expect(transactionPool.validTransactions()).toStrictEqual(validTransactions)
-    })
-  })
+      expect(transactionPool.transactionMap).toEqual(expectedTransactionMap);
+    });
+  });
 })

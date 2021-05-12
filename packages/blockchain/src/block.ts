@@ -3,7 +3,7 @@ import { DEFAULT_DIFFICULTY, MINE_RATE } from '@falafel/constants'
 import { Transaction } from '@falafel/wallet'
 import hex2Bin from 'hex-to-bin'
 
-export type BlockData = Array<Transaction> | string
+export type BlockData = Array<Transaction>
 
 type Timestamp = number
 type Hash = string
@@ -74,7 +74,6 @@ class Block {
       timestamp = Date.now()
       difficulty = Block.adjustDifficulty(lastBlock, timestamp)
       hash = Block.genHash({ timestamp, lastHash, data, nonce, difficulty })
-      // console.log(nonce)
     } while (hex2Bin(hash).substring(0, difficulty) !== '0'.repeat(difficulty))
 
     return new this({ timestamp, lastHash, hash, data, nonce, difficulty })

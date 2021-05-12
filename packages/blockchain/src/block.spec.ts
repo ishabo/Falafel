@@ -1,6 +1,5 @@
-import Block from './block'
+import Block, {BlockData} from './block'
 import Util from '@falafel/util'
-import { Transaction } from '@falafel/wallet'
 import { advanceBy, advanceTo, clear } from 'jest-date-mock'
 import { DEFAULT_DIFFICULTY } from '@falafel/constants'
 import hex2Bin from 'hex-to-bin'
@@ -33,7 +32,7 @@ describe('Block', () => {
   it('returns a stringified instance', () => {
     const now = Date.now()
     const lastHash = 'last-hash'
-    const data = [] as Array<Transaction>
+    const data = [] as BlockData
     const nonce = 0
     const block = new Block({ timestamp: now, lastHash, hash: hashWithLeeding4Zeros, data, nonce })
 
@@ -63,12 +62,11 @@ describe('Block', () => {
   describe('mining blocks', () => {
     let genesisBlock: Block
     let firstMinedBlock: Block
-    let secondMinedBlock: Block
 
     let adjustDifficulty = DEFAULT_DIFFICULTY
     let nonce = 1
-    const firstBlockData = 'First mined block'
-    const secondBlockData = 'Second mined block'
+    const firstBlockData = ['First mined block'] as unknown as BlockData
+    const secondBlockData = ['Second mined block'] as unknown as BlockData
 
     beforeAll(() => {
       genesisBlock = Block.genesis()
@@ -97,7 +95,7 @@ describe('Block', () => {
       it('would have created SHA256 one time with nonce = 1 given that the expected leeding zeros were found at once', () => {
         expect(mockSha256).toHaveBeenCalledTimes(1)
         expect(mockSha256).toHaveBeenCalledWith(
-          `${firstMinedBlock.timestamp}${genesisBlock.hash}${firstBlockData}${nonce}${adjustDifficulty}`
+          `${firstMinedBlock.timestamp}${genesisBlock.hash}${JSON.stringify(firstBlockData)}${nonce}${adjustDifficulty}`
         )
       })
 

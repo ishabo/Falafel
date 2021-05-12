@@ -1,86 +1,99 @@
-import Util from '@falafel/util'
+import Util, { Signature } from '@falafel/util'
 import Wallet from '.'
-import { MINING_REWARD } from '@falafel/constants'
+import { MINING_REWARD, REWARD_INPUT } from '@falafel/constants'
 
-interface Output {
+export type OutputMap = Record<string, number>
+
+export interface Input {
+  timestamp: number
   amount: number
   address: string
+  signature: Signature
 }
+
+type TransactionProps = {
+  senderWallet: Wallet
+  recipient: string
+  amount: number
+  outputMap?: OutputMap
+  input?: Input
+} 
 
 class Transaction {
   public id: string
-  public outputs: Array<Output>
-  public input: any
+  public outputMap: OutputMap
+  public input: Input
 
-  constructor() {
+  constructor({ senderWallet, recipient, amount, outputMap, input }: TransactionProps) {
     this.id = Util.id()
-    this.input = null
-    this.outputs = []
+    this.outputMap = outputMap || this.createOutputMap({ senderWallet, recipient, amount })
+    this.input = input || this.createInput({ senderWallet, outputMap: this.outputMap })
   }
 
-  public update(senderWallet: Wallet, recipient: string, amount: number): Transaction {
-    const senderOutput = this.outputs.find((output) => output.address === senderWallet.publicKey)
-    if (!senderOutput) {
-      console.log(`Could not find output maching the senderWallet.publicKey`)
-      return this
-    }
-
-    if (amount > senderOutput?.amount) {
-      console.log(`Amount: ${amount} exceeds the balance.`)
-      return this
-    }
-
-    senderOutput.amount = senderOutput.amount - amount
-    this.outputs.push({ amount, address: recipient })
-    Transaction.signTransaction(this, senderWallet)
-    return this
-  }
-
-  static transactionWithOutputs(senderWallet: Wallet, outputs: Array<Output>): Transaction {
-    const transaction = new this()
-    transaction.outputs.push(...outputs)
-    Transaction.signTransaction(transaction, senderWallet)
-    return transaction
-  }
-
-  static newTransaction(
-    senderWallet: Wallet,
-    recipient: string,
-    amount: number
-  ): Transaction | undefined {
-
-    if (amount > senderWallet.balance) {
-      console.log(`Amount: ${amount} exceeds balance.`)
-      return
-    }
-
-    const senderUpdatedAmount = {
-      amount: senderWallet.balance - amount,
-      address: senderWallet.publicKey,
-    }
-
-    const recipientAmount = { amount, address: recipient }
-
-    return Transaction.transactionWithOutputs(senderWallet, [senderUpdatedAmount, recipientAmount])
-  }
-
-  static rewardTransaction(minderWallet: Wallet, blockchainWallet: Wallet) {
-    return Transaction.transactionWithOutputs(blockchainWallet, [{
-      amount: MINING_REWARD, address: minderWallet.publicKey
-    }])
-  }
-
-  static signTransaction(transaction: Transaction, senderWallet: Wallet) {
-    transaction.input = {
+  public createInput({
+    senderWallet,
+    outputMap,
+  }: {
+    senderWallet: Wallet
+    outputMap: OutputMap
+  }): Input {
+    return {
       timestamp: Date.now(),
       amount: senderWallet.balance,
       address: senderWallet.publicKey,
-      signature: senderWallet.sign(Util.genHash(transaction.outputs)),
+      signature: senderWallet.sign(outputMap),
     }
   }
 
-  static verifyTransaction({ input, outputs }: Transaction): boolean {
-    return Util.verifySignature(input.address, input.signature, Util.genHash(outputs))
+  public createOutputMap({ senderWallet, recipient, amount }: TransactionProps) {
+    const outputMap: OutputMap = {}
+
+    outputMap[recipient] = amount
+    outputMap[senderWallet.publicKey] = senderWallet.balance - amount
+
+    return outputMap
+  }
+
+  public update({ senderWallet, recipient, amount }: TransactionProps): void {
+    if (amount > this.outputMap[senderWallet.publicKey]) {
+      throw new Error('Amount exceeds balance')
+    }
+
+    if (!this.outputMap[recipient]) {
+      this.outputMap[recipient] = amount
+    } else {
+      this.outputMap[recipient] = this.outputMap[recipient] + amount
+    }
+
+    this.outputMap[senderWallet.publicKey] = this.outputMap[senderWallet.publicKey] - amount
+
+    this.input = this.createInput({ senderWallet, outputMap: this.outputMap })
+  }
+
+  static rewardTransaction({ minerWallet }: { minerWallet: Wallet }) {
+    return new this({
+      input: REWARD_INPUT as Input,
+      outputMap: { [minerWallet.publicKey]: MINING_REWARD },
+    } as TransactionProps)
+  }
+
+  static validTransaction(transaction: Transaction) {
+    const { input: { address, amount, signature }, outputMap } = transaction;
+
+    const outputTotal = Object.values(outputMap)
+      .reduce((total, outputAmount) => total + outputAmount);
+
+    if (amount !== outputTotal) {
+      console.error(`Invalid transaction from ${address}`);
+      return false;
+    }
+
+    if (!Util.verifySignature({ publicKey: address, data: outputMap, signature })) {
+      console.error(`Invalid signature from ${address}`);
+      return false;
+    }
+
+    return true;  
   }
 }
 

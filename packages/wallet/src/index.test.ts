@@ -1,107 +1,207 @@
 import { INITIAL_BALANCE } from '@falafel/constants'
 import Blockchain, { BlockData } from '@falafel/blockchain'
 import Transaction from './transaction'
-import TransactionPool from './transaction-pool'
+import Util from '@falafel/util'
 import Wallet from '.'
 
 describe('Wallet', () => {
-  let blockchain: Blockchain
   let wallet: Wallet
-  let transactionPool: TransactionPool
 
   beforeEach(() => {
-    blockchain = new Blockchain()
-    wallet = new Wallet()
-    transactionPool = new TransactionPool()
-  })
+    wallet = new Wallet();
+  });
 
-  it('it has a banalce', () => {
-    expect(wallet).toHaveProperty('balance')
-  })
+  it('has a `balance`', () => {
+    expect(wallet).toHaveProperty('balance');
+  });
 
-  it('it has a publicKey', () => {
-    expect(wallet).toHaveProperty('publicKey')
-  })
+  it('has a `publicKey`', () => {
+    expect(wallet).toHaveProperty('publicKey');
+  });
 
-  describe('creating a transaction', () => {
-    let transaction: Transaction
-    let sendAmount: number
-    let recipient: string
+  describe('signing data', () => {
+    const data = ['foobar'] as unknown as Array<Transaction>;
+
+    it('verifies a signature', () => {
+      expect(
+        Util.verifySignature({
+          publicKey: wallet.publicKey,
+          data,
+          signature: wallet.sign(data)
+        })
+      ).toBe(true);
+    });
+
+    it('does not verify an invalid signature', () => {
+      expect(
+        Util.verifySignature({
+          publicKey: wallet.publicKey,
+          data,
+          signature: new Wallet().sign(data)
+        })
+      ).toBe(false);
+    });
+  });
+
+  describe('createTransaction()', () => {
+    describe('and the amount exceeds the balance', () => {
+      it('throws an error', () => {
+        expect(() => wallet.createTransaction({ amount: 999999, recipient: 'foo-recipient' }))
+          .toThrow('Amount exceeds balance');
+      });
+    });
+
+    describe('and the amount is valid', () => {
+      let transaction: Transaction
+      let amount: number 
+      let recipient: string
+
+      beforeEach(() => {
+        amount = 50;
+        recipient = 'foo-recipient';
+        transaction = wallet.createTransaction({ amount, recipient });
+      });
+
+      it('creates an instance of `Transaction`', () => {
+        expect(transaction instanceof Transaction).toBe(true);
+      });
+
+      it('matches the transaction input with the wallet', () => {
+        expect(transaction.input.address).toEqual(wallet.publicKey);
+      });
+
+      it('outputs the amount the recipient', () => {
+        expect(transaction.outputMap[recipient]).toEqual(amount);
+      });
+    });
+
+    describe('and a chain is passed', () => {
+      it('calls `Wallet.calculateBalance`', () => {
+        const calculateBalanceMock = jest.fn();
+
+        const originalCalculateBalance = Wallet.calculateBalance;
+
+        Wallet.calculateBalance = calculateBalanceMock;
+
+        wallet.createTransaction({
+          recipient: 'foo',
+          amount: 10,
+          chain: new Blockchain().chain
+        });
+
+        expect(calculateBalanceMock).toHaveBeenCalled();
+
+        Wallet.calculateBalance = originalCalculateBalance;
+      });
+    });
+  });
+
+  describe('calculateBalance()', () => {
+    let blockchain: Blockchain;
 
     beforeEach(() => {
-      sendAmount = 50
-      recipient = 'r4nd0m-4ddr355'
-      transaction = wallet.createTransaction(recipient, sendAmount, blockchain, transactionPool) as Transaction
-    })
+      blockchain = new Blockchain();
+    });
 
-    describe('and doing the same transaction', () => {
-      beforeEach(() => {
-        wallet.createTransaction(recipient, sendAmount, blockchain, transactionPool)
-      })
-
-      it('doubles the `sendAmount` subtracted from the wallet balance', () => {
+    describe('and there are no outputs for the wallet', () => {
+      it('returns the `STARTING_BALANCE`', () => {
         expect(
-          transaction.outputs.find((output) => output.address === wallet.publicKey)?.amount
-        ).toStrictEqual(wallet.balance - sendAmount * 2)
-      })
+          Wallet.calculateBalance({
+            chain: blockchain.chain,
+            address: wallet.publicKey
+          })
+        ).toEqual(INITIAL_BALANCE);
+      });
+    });
 
-      it('clones the `sendAmount` output for the recipient', () => {
-        expect(
-          transaction.outputs
-            .filter((output) => output.address === recipient)
-            .map((output) => output.amount)
-        ).toStrictEqual([sendAmount, sendAmount])
-      })
-    })
-  })
+    describe('and there are outputs for the wallet', () => {
+      let transactionOne: Transaction; 
+      let transactionTwo: Transaction;
 
-  describe('calculate a balance', () => {
-    let addBalance: number
-    let repeatAdd: number
-    let senderWallet: Wallet
-
-    beforeEach(() => {
-      senderWallet = new Wallet()
-      addBalance = 100
-      repeatAdd = 3
-      for (let i=0; i < repeatAdd; i++) {
-        senderWallet.createTransaction(wallet.publicKey, addBalance, blockchain, transactionPool)
-      }
-
-      blockchain.addBlock(transactionPool.transactions as unknown as BlockData)
-    })
-
-    it('calculates the balance for blockchain transactions matching the recipient', () => {
-      expect(wallet.calculateBalance(blockchain)).toStrictEqual(INITIAL_BALANCE + (addBalance * repeatAdd))
-    })
-
-    it('calculates the balance for the blockchain transactions matching the sender', () => {
-      expect(senderWallet.calculateBalance(blockchain)).toStrictEqual(INITIAL_BALANCE - (addBalance * repeatAdd))
-    })
-
-    describe('and the recipient conducts a transaction', () => {
-      let subtractBalance: number 
-      let recipientBalance: number
-      
       beforeEach(() => {
-        transactionPool.clear()
-        subtractBalance = 60
-        recipientBalance = wallet.calculateBalance(blockchain)
-        wallet.createTransaction(senderWallet.publicKey, subtractBalance, blockchain, transactionPool)
-        blockchain.addBlock(transactionPool.transactions as unknown as BlockData)
-      })
+        transactionOne = new Wallet().createTransaction({
+          recipient: wallet.publicKey,
+          amount: 50
+        });
 
-      describe('and the sender sends another transaction to the recipient', () => {
+        transactionTwo = new Wallet().createTransaction({
+          recipient: wallet.publicKey,
+          amount: 60
+        });
+
+        blockchain.addBlock({ data: [transactionOne, transactionTwo] });
+      });
+
+      it('adds the sum of all outputs to the wallet balance', () => {
+        expect(
+          Wallet.calculateBalance({
+            chain: blockchain.chain,
+            address: wallet.publicKey
+          })
+        ).toEqual(
+          INITIAL_BALANCE +
+          transactionOne.outputMap[wallet.publicKey] +
+          transactionTwo.outputMap[wallet.publicKey]
+        );
+      });
+
+      describe('and the wallet has made a transaction', () => {
+        let recentTransaction: Transaction;
+
+
         beforeEach(() => {
-          transactionPool.clear()
-          senderWallet.createTransaction(wallet.publicKey, addBalance, blockchain, transactionPool)
-          blockchain.addBlock(transactionPool.transactions as unknown as BlockData)
-        })
+          recentTransaction = wallet.createTransaction({
+            recipient: 'foo-address',
+            amount: 30
+          });
 
-        it('calculates the recipient balance only using transactions since its most recent one', () => {
-          expect(wallet.calculateBalance(blockchain)).toStrictEqual(recipientBalance - subtractBalance + addBalance)
-        })
-      })
-    })
-  })
+          blockchain.addBlock({ data: [recentTransaction]});
+        });
+
+        it('returns the output amount of the recent transaction', () => {
+          expect(
+            Wallet.calculateBalance({
+              chain: blockchain.chain,
+              address: wallet.publicKey
+            })
+          ).toEqual(recentTransaction.outputMap[wallet.publicKey]);
+        });
+
+        describe('and there are outputs next to and after the recent transaction', () => {
+          let sameBlockTransaction: Transaction
+          let nextBlockTransaction: Transaction
+
+          beforeEach(() => {
+            recentTransaction = wallet.createTransaction({
+              recipient: 'later-foo-address',
+              amount: 60
+            });
+
+            sameBlockTransaction = Transaction.rewardTransaction({ minerWallet: wallet });
+
+            blockchain.addBlock({ data: [recentTransaction, sameBlockTransaction] });
+
+            nextBlockTransaction = new Wallet().createTransaction({
+              recipient: wallet.publicKey, amount: 75
+            });
+
+            blockchain.addBlock({ data: [nextBlockTransaction] });
+          });
+
+          it('includes the output amounts in the returned balance', () => {
+            expect(
+              Wallet.calculateBalance({
+                chain: blockchain.chain,
+                address: wallet.publicKey
+              })
+            ).toEqual(
+              recentTransaction.outputMap[wallet.publicKey] +
+              sameBlockTransaction.outputMap[wallet.publicKey] +
+              nextBlockTransaction.outputMap[wallet.publicKey]
+            );
+          });
+        });
+      });
+    });
+  });
 })
