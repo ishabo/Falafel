@@ -1,4 +1,4 @@
-import Util, {Signature} from '@falafel/util'
+import Util, { Signature } from '@falafel/util'
 import { MINING_REWARD, REWARD_INPUT } from '@falafel/constants'
 import Transaction from './transaction'
 import Wallet from '.'
@@ -10,10 +10,10 @@ describe('Transaction', () => {
   let amount: number
 
   beforeEach(() => {
-    senderWallet = new Wallet();
-    recipient = 'recipient-public-key';
-    amount = 50;
-    transaction = new Transaction({ senderWallet, recipient, amount });  
+    senderWallet = new Wallet()
+    recipient = 'recipient-public-key'
+    amount = 50
+    transaction = new Transaction({ senderWallet, recipient, amount })
   })
 
   it('has an id', () => {
@@ -90,7 +90,7 @@ describe('Transaction', () => {
     })
   })
 
-    describe('update()', () => {
+  describe('update()', () => {
     let originalSignature: Signature
     let originalSenderOutput: number
     let nextRecipient: string
@@ -100,82 +100,88 @@ describe('Transaction', () => {
       it('throws an error', () => {
         expect(() => {
           transaction.update({
-            senderWallet, recipient: 'foo', amount: 999999
+            senderWallet,
+            recipient: 'foo',
+            amount: 999999,
           })
-        }).toThrow('Amount exceeds balance');
-      });
-    });
+        }).toThrow('Amount exceeds balance')
+      })
+    })
 
     describe('and the amount is valid', () => {
       beforeEach(() => {
-        originalSignature = transaction.input.signature;
-        originalSenderOutput = transaction.outputMap[senderWallet.publicKey];
-        nextRecipient = 'next-recipient';
-        nextAmount = 50;
-  
+        originalSignature = transaction.input.signature
+        originalSenderOutput = transaction.outputMap[senderWallet.publicKey]
+        nextRecipient = 'next-recipient'
+        nextAmount = 50
+
         transaction.update({
-          senderWallet, recipient: nextRecipient, amount: nextAmount
-        });
-      });
-  
+          senderWallet,
+          recipient: nextRecipient,
+          amount: nextAmount,
+        })
+      })
+
       it('outputs the amount to the next recipient', () => {
-        expect(transaction.outputMap[nextRecipient]).toEqual(nextAmount);
-      });
-  
+        expect(transaction.outputMap[nextRecipient]).toEqual(nextAmount)
+      })
+
       it('subtracts the amount from the original sender output amount', () => {
-        expect(transaction.outputMap[senderWallet.publicKey])
-          .toEqual(originalSenderOutput - nextAmount);
-      });
-  
+        expect(transaction.outputMap[senderWallet.publicKey]).toEqual(
+          originalSenderOutput - nextAmount
+        )
+      })
+
       it('maintains a total output that matches the input amount', () => {
         expect(
-          Object.values(transaction.outputMap)
-            .reduce((total, outputAmount) => total + outputAmount)
-        ).toEqual(transaction.input.amount);
-      });
-  
+          Object.values(transaction.outputMap).reduce((total, outputAmount) => total + outputAmount)
+        ).toEqual(transaction.input.amount)
+      })
+
       it('re-signs the transaction', () => {
-        expect(transaction.input.signature).not.toEqual(originalSignature);
-      });
+        expect(transaction.input.signature).not.toEqual(originalSignature)
+      })
 
       describe('and another update for the same recipient', () => {
-        let addedAmount: number;
+        let addedAmount: number
 
         beforeEach(() => {
-          addedAmount = 80;
+          addedAmount = 80
           transaction.update({
-            senderWallet, recipient: nextRecipient, amount: addedAmount
-          });
-        });
+            senderWallet,
+            recipient: nextRecipient,
+            amount: addedAmount,
+          })
+        })
 
         it('adds to the recipient amount', () => {
-          expect(transaction.outputMap[nextRecipient])
-            .toEqual(nextAmount + addedAmount);
-        });
+          expect(transaction.outputMap[nextRecipient]).toEqual(nextAmount + addedAmount)
+        })
 
         it('subtracts the amount from the original sender output amount', () => {
-          expect(transaction.outputMap[senderWallet.publicKey])
-            .toEqual(originalSenderOutput - nextAmount - addedAmount);
-        });
-      });
-    });
-  });
+          expect(transaction.outputMap[senderWallet.publicKey]).toEqual(
+            originalSenderOutput - nextAmount - addedAmount
+          )
+        })
+      })
+    })
+  })
 
   describe('rewardTransaction()', () => {
     let rewardTransaction: Transaction
     let minerWallet: Wallet
 
     beforeEach(() => {
-      minerWallet = new Wallet();
-      rewardTransaction = Transaction.rewardTransaction({ minerWallet });
-    });
+      minerWallet = new Wallet()
+      rewardTransaction = Transaction.rewardTransaction({ minerWallet })
+    })
 
     it('creates a transaction with the reward input', () => {
-      expect(rewardTransaction.input).toEqual(REWARD_INPUT);
-    });
+      expect(rewardTransaction.input).toEqual(REWARD_INPUT)
+    })
 
     it('creates one transaction for the miner with the `MINING_REWARD`', () => {
-      expect(rewardTransaction.outputMap[minerWallet.publicKey]).toEqual(MINING_REWARD);
-    });
-  });
+      expect(rewardTransaction.outputMap[minerWallet.publicKey]).toEqual(MINING_REWARD)
+    })
+  })
 })

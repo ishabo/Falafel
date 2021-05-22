@@ -17,13 +17,19 @@ type TransactionProps = {
   amount: number
   outputMap?: OutputMap
   input?: Input
-} 
+}
 
 class Transaction {
   public id: string
   public outputMap: OutputMap
   public input: Input
 
+  /**
+   * Initializes a transaction with an output and an input
+   * output and input are optional, and by default the transaction
+   * class should create output and input from the given sender wallet,
+   * recipient address and amount
+   */
   constructor({ senderWallet, recipient, amount, outputMap, input }: TransactionProps) {
     this.id = Util.id()
     this.outputMap = outputMap || this.createOutputMap({ senderWallet, recipient, amount })
@@ -54,6 +60,12 @@ class Transaction {
     return outputMap
   }
 
+  /**
+   * updates the transaction output. This is usefull when the sender
+   * wants to transact with more one recipient. This function will
+   * add the each additional output to the outputMap and update and 
+   * updates the input withe updated amount
+   */
   public update({ senderWallet, recipient, amount }: TransactionProps): void {
     if (amount > this.outputMap[senderWallet.publicKey]) {
       throw new Error('Amount exceeds balance')
@@ -78,22 +90,26 @@ class Transaction {
   }
 
   static validTransaction(transaction: Transaction) {
-    const { input: { address, amount, signature }, outputMap } = transaction;
+    const {
+      input: { address, amount, signature },
+      outputMap,
+    } = transaction
 
-    const outputTotal = Object.values(outputMap)
-      .reduce((total, outputAmount) => total + outputAmount);
+    const outputTotal = Object.values(outputMap).reduce(
+      (total, outputAmount) => total + outputAmount
+    )
 
     if (amount !== outputTotal) {
-      console.error(`Invalid transaction from ${address}`);
-      return false;
+      console.error(`Invalid transaction from ${address}`)
+      return false
     }
 
     if (!Util.verifySignature({ publicKey: address, data: outputMap, signature })) {
-      console.error(`Invalid signature from ${address}`);
-      return false;
+      console.error(`Invalid signature from ${address}`)
+      return false
     }
 
-    return true;  
+    return true
   }
 }
 

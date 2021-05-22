@@ -1,13 +1,16 @@
 {
-    "name": "@falafel/typescript-config",
-    "version": "1.0.0",
-    "license": "MIT",
-    "scripts": {
-        "g:tsc": "cd $INIT_CWD && tsc"
-    },
-    "dependencies": {
-        "@types/node": "^14.14.37",
-        "ts-node": "^9.1.1",
-        "typescript": "^4.2.3"
-    }
+  "name": "@falafel/typescript-config",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "g:tsc": "cd $INIT_CWD && tsc"
+  },
+  "dependencies": {
+    "@types/node": "^14.14.37",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.3"
+  },
+  "devDependencies": {
+    "@falafel/eslint-config": "workspace:packages/config/eslint"
+  }
 }

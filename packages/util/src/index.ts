@@ -16,19 +16,30 @@ class Util {
   }
 
   static genHash(...inputs: Array<unknown>): string {
-    const hash = crypto.createHash('sha256');
+    const hash = crypto.createHash('sha256')
 
-    hash.update(inputs.map(input => JSON.stringify(input)).sort().join(' '));
+    hash.update(
+      inputs
+        .map((input) => JSON.stringify(input))
+        .sort()
+        .join(' ')
+    )
 
-    return hash.digest('hex');
+    return hash.digest('hex')
   }
 
-  static verifySignature({ publicKey, signature, data }: {publicKey: string, signature: Signature, data: any}): boolean {
+  static verifySignature({
+    publicKey,
+    signature,
+    data,
+  }: {
+    publicKey: string
+    signature: Signature
+    data: any
+  }): boolean {
     const keyFromPublic = ec.keyFromPublic(publicKey, 'hex')
     return keyFromPublic.verify(Util.genHash(data), signature)
   }
 }
-
-
 
 export default Util

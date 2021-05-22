@@ -2,5 +2,8 @@
   "name": "@falafel/constants",
   "version": "1.0.0",
   "license": "MIT",
-  "main": "src/index.ts"
+  "main": "src/index.ts",
+  "devDependencies": {
+    "@falafel/eslint-config": "workspace:packages/config/eslint"
+  }
 }
