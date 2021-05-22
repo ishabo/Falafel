@@ -28,7 +28,7 @@ class TransactionPool {
     return transactions.find((transaction) => transaction.input.address === inputAddress)
   }
 
-  validTransactions() {
+  public validTransactions() {
     const transactions = Array.from(this.transactionMap.values())
     return transactions.filter(Transaction.validTransaction)
   }

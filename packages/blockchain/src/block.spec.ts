@@ -1,4 +1,4 @@
-import Block, {BlockData} from './block'
+import Block, { BlockData } from './block'
 import Util from '@falafel/util'
 import { advanceBy, advanceTo, clear } from 'jest-date-mock'
 import { DEFAULT_DIFFICULTY } from '@falafel/constants'
@@ -65,8 +65,8 @@ describe('Block', () => {
 
     let adjustDifficulty = DEFAULT_DIFFICULTY
     let nonce = 1
-    const firstBlockData = ['First mined block'] as unknown as BlockData
-    const secondBlockData = ['Second mined block'] as unknown as BlockData
+    const firstBlockData = (['First mined block'] as unknown) as BlockData
+    const secondBlockData = (['Second mined block'] as unknown) as BlockData
 
     beforeAll(() => {
       genesisBlock = Block.genesis()
@@ -95,7 +95,9 @@ describe('Block', () => {
       it('would have created SHA256 one time with nonce = 1 given that the expected leeding zeros were found at once', () => {
         expect(mockSha256).toHaveBeenCalledTimes(1)
         expect(mockSha256).toHaveBeenCalledWith(
-          `${firstMinedBlock.timestamp}${genesisBlock.hash}${JSON.stringify(firstBlockData)}${nonce}${adjustDifficulty}`
+          `${firstMinedBlock.timestamp}${genesisBlock.hash}${JSON.stringify(
+            firstBlockData
+          )}${nonce}${adjustDifficulty}`
         )
       })
 

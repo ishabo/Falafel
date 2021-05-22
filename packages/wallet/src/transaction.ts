@@ -63,7 +63,7 @@ class Transaction {
   /**
    * updates the transaction output. This is usefull when the sender
    * wants to transact with more one recipient. This function will
-   * add the each additional output to the outputMap and update and 
+   * add the each additional output to the outputMap and update and
    * updates the input withe updated amount
    */
   public update({ senderWallet, recipient, amount }: TransactionProps): void {

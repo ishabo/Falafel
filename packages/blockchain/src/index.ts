@@ -18,7 +18,7 @@ class Blockchain {
   }
 
   public isValidChain(chain: Chain): boolean {
-    const hasTheSameGenesisBlock = JSON.stringify(chain[0]) !== JSON.stringify(this.chain[0]) 
+    const hasTheSameGenesisBlock = JSON.stringify(chain[0]) !== JSON.stringify(this.chain[0])
     if (hasTheSameGenesisBlock) {
       return false
     }

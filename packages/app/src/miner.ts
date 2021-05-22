@@ -3,9 +3,12 @@ import Wallet, { Transaction, TransactionPool } from '@falafel/wallet'
 import PubSub from './pubsub'
 
 class Miner {
-  constructor(public blockchain: Blockchain, public transactionPool: TransactionPool, public wallet: Wallet, public pubsub: PubSub) {
-
-  }
+  constructor(
+    public blockchain: Blockchain,
+    public transactionPool: TransactionPool,
+    public wallet: Wallet,
+    public pubsub: PubSub
+  ) {}
 
   public mine(): Block {
     const validTransactions = this.transactionPool.validTransactions()

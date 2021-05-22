@@ -92,7 +92,7 @@ class Block {
 
   static blockHash(block: Block) {
     const { timestamp, lastHash, data, nonce, difficulty } = block
-    return Block.genHash({timestamp, lastHash, data, nonce, difficulty})
+    return Block.genHash({ timestamp, lastHash, data, nonce, difficulty })
   }
 
   static adjustDifficulty(lastBlock: Block, currentTime: number): number {
