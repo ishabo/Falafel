@@ -51,8 +51,8 @@ class Wallet {
     let hasConductedTransaction = false
     let outputsTotal = 0
 
-    const inversedChain = chain.reverse()
-    for (const block of inversedChain) {
+    for (let i=chain.length-1; i>0; i--) {
+      const block = chain[i];
       const blockData = block.data as BlockData
 
       for (let transaction of blockData) {

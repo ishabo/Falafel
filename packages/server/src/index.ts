@@ -1,6 +1,6 @@
 import Blockchain from '@falafel/blockchain'
 import Wallet, { TransactionPool } from '@falafel/wallet'
-import express from 'express'
+import express, { Request, Response } from 'express'
 import ApiRouter from './api'
 import { DEFAULT_PORT } from './constants'
 import { syncWithRootState } from './utils'

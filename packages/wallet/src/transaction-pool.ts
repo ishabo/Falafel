@@ -38,7 +38,9 @@ class TransactionPool {
       const block = chain[i]
 
       for (let transaction of block.data) {
-        if (transaction instanceof Transaction) {
+        console.error(transaction, this.transactionMap.keys())
+
+        if (this.transactionMap.has(transaction.id)) {
           this.transactionMap.delete(transaction.id)
         }
       }

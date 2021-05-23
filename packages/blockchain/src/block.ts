@@ -1,7 +1,7 @@
 import Util from '@falafel/util'
-import { DEFAULT_DIFFICULTY, MINE_RATE } from '@falafel/constants'
+import { GENESIS_DATA, MINE_RATE } from '@falafel/constants'
 import { Transaction } from '@falafel/wallet'
-import hex2Bin from 'hex-to-bin'
+import hexToBin from 'hex-to-bin'
 
 export type BlockData = Array<Transaction>
 
@@ -14,7 +14,7 @@ interface BlockProps {
   hash: Hash
   data: BlockData
   nonce: number
-  difficulty?: number
+  difficulty: number
 }
 
 class Block {
@@ -25,14 +25,7 @@ class Block {
   public nonce: number
   public difficulty: number
 
-  constructor({
-    timestamp,
-    lastHash,
-    hash,
-    data,
-    nonce,
-    difficulty = DEFAULT_DIFFICULTY,
-  }: BlockProps) {
+  constructor({ timestamp, lastHash, hash, data, nonce, difficulty }: BlockProps) {
     this.timestamp = timestamp
     this.lastHash = lastHash
     this.hash = hash
@@ -41,64 +34,40 @@ class Block {
     this.difficulty = difficulty
   }
 
-  public toString() {
-    const timestamp = new Date(this.timestamp)
-    return `Block -
-          Timestamp : ${timestamp.toISOString()}
-          Last Hash : ${this.lastHash.substring(0, 10)}
-          Hash      : ${this.hash.substring(0, 10)}
-          Nonce     : ${this.nonce}
-          Difficulty: ${this.difficulty}
-          Data      : ${this.data}`
-  }
-
   static genesis() {
-    return new this({
-      timestamp: new Date(0, 0, 0, 0).getTime(),
-      lastHash: '-----',
-      hash: 'f1r57-h45h',
-      data: [] as Array<Transaction>,
-      nonce: 0,
-    })
+    return new this(GENESIS_DATA)
   }
 
-  static mineBlock(lastBlock: Block, data: BlockData) {
-    let hash: string
-    let timestamp: number
+  static mineBlock({ lastBlock, data }: { lastBlock: Block; data: Array<Transaction> }) {
+    const lastHash = lastBlock.hash
+    let hash, timestamp
     let { difficulty } = lastBlock
     let nonce = 0
-    const lastHash = lastBlock.hash
 
     do {
       nonce++
       timestamp = Date.now()
-      difficulty = Block.adjustDifficulty(lastBlock, timestamp)
-      hash = Block.genHash({ timestamp, lastHash, data, nonce, difficulty })
-    } while (hex2Bin(hash).substring(0, difficulty) !== '0'.repeat(difficulty))
+      difficulty = Block.adjustDifficulty({ originalBlock: lastBlock, timestamp })
+      hash = Util.genHash(timestamp, lastHash, data, nonce, difficulty)
+    } while (hexToBin(hash).substring(0, difficulty) !== '0'.repeat(difficulty))
 
-    return new this({ timestamp, lastHash, hash, data, nonce, difficulty })
+    return new this({ timestamp, lastHash, data, difficulty, nonce, hash })
   }
 
-  static genHash({
+  static adjustDifficulty({
+    originalBlock,
     timestamp,
-    lastHash,
-    data,
-    nonce,
-    difficulty,
-  }: Omit<BlockProps, 'hash'> & { difficulty: number }) {
-    const stringifiedData = typeof data === 'string' ? data : JSON.stringify(data)
-    return Util.genHash(`${timestamp}${lastHash}${stringifiedData}${nonce}${difficulty}`).toString()
-  }
+  }: {
+    originalBlock: Block
+    timestamp: number
+  }) {
+    const { difficulty } = originalBlock
 
-  static blockHash(block: Block) {
-    const { timestamp, lastHash, data, nonce, difficulty } = block
-    return Block.genHash({ timestamp, lastHash, data, nonce, difficulty })
-  }
+    if (difficulty < 1) return 1
 
-  static adjustDifficulty(lastBlock: Block, currentTime: number): number {
-    let { difficulty } = { ...lastBlock }
-    difficulty = lastBlock.timestamp + MINE_RATE > currentTime ? difficulty + 1 : difficulty - 1
-    return difficulty
+    if (timestamp - originalBlock.timestamp > MINE_RATE) return difficulty - 1
+
+    return difficulty + 1
   }
 }
 

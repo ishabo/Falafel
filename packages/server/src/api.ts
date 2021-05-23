@@ -46,8 +46,7 @@ const ApiRouter = ({
 
   api.post('/mine', (req: Request, res: Response) => {
     const { data } = req.body
-    const block = blockchain.addBlock(data)
-    console.log(`New block added: ${block.toString()}`)
+    blockchain.addBlock(data)
 
     pubsub.broadcastChain()
     res.redirect('/api/blocks')

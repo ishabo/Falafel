@@ -1,197 +1,268 @@
-import { advanceTo, clear as clearDateMock } from 'jest-date-mock'
-import { Transaction } from '@falafel/wallet'
+import Wallet, { Transaction } from '@falafel/wallet'
+import Util from '@falafel/util'
 
-import Blockchain from '.'
-import Block, { BlockData } from './block'
+import Blockchain, { Chain } from '.'
+import Block from './block'
 
-describe('Blockchian', () => {
-  let bc: Blockchain
-  let bc2: Blockchain
-  let errorMock = jest.fn()
-  let logMock = jest.fn()
-  let blockHashSpy: jest.SpyInstance
+describe('Blockchain', () => {
+  let blockchain: Blockchain
+  let newChain: Blockchain
+  let originalChain: Chain
+  let errorMock: jest.Mock
 
   beforeEach(() => {
-    advanceTo(new Date(1984, 4, 22, 17, 0, 0))
-    bc = new Blockchain()
-    bc2 = new Blockchain()
+    blockchain = new Blockchain()
+    newChain = new Blockchain()
+    errorMock = jest.fn()
+
+    originalChain = blockchain.chain
     global.console.error = errorMock
-    global.console.log = logMock
   })
 
-  afterEach(() => {
-    clearDateMock()
-    if (blockHashSpy) {
-      blockHashSpy.mockRestore()
-    }
+  it('contains a `chain` Array instance', () => {
+    expect(blockchain.chain instanceof Array).toBe(true)
   })
 
-  it('initializes with a genesis block', () => {
-    expect(bc.chain.length).toStrictEqual(1)
-    expect(bc.chain[0].toString()).toMatchInlineSnapshot(`
-      "Block -
-                Timestamp : 1899-12-31T00:00:00.000Z
-                Last Hash : -----
-                Hash      : f1r57-h45h
-                Nonce     : 0
-                Difficulty: 4
-                Data      : "
-    `)
+  it('starts with the genesis block', () => {
+    expect(blockchain.chain[0]).toEqual(Block.genesis())
   })
 
-  it('adds a new block', () => {
-    const data = (['A new block was added'] as unknown) as BlockData
-    const newBlock = new Block({
-      timestamp: Date.now(),
-      lastHash: 'f1r57-h45h',
-      hash: 'a1a6da8674',
-      data,
-      nonce: 1,
-      difficulty: 3,
-    })
-    const mineBlockSpy = jest.spyOn(Block, 'mineBlock').mockReturnValueOnce(newBlock)
-    bc.addBlock({ data })
-    expect(bc.chain.length).toStrictEqual(2)
-    expect(bc.chain[bc.chain.length - 1].toString()).toMatchInlineSnapshot(`
-      "Block -
-                Timestamp : 1984-05-22T16:00:00.000Z
-                Last Hash : f1r57-h45h
-                Hash      : a1a6da8674
-                Nonce     : 1
-                Difficulty: 3
-                Data      : A new block was added"
-    `)
+  it('adds a new block to the chain', () => {
+    const newData: Array<Transaction> = []
+    blockchain.addBlock({ data: newData })
 
-    expect(mineBlockSpy).toHaveBeenCalledTimes(1)
+    expect(blockchain.chain[blockchain.chain.length - 1].data).toEqual(newData)
   })
 
-  it('links every added block to the last one in chain', () => {
-    const data1 = (['First block'] as unknown) as BlockData
-    const data2 = (['second block'] as unknown) as BlockData
-    const data3 = (['third block'] as unknown) as BlockData
-    const newBlock1 = new Block({
-      timestamp: Date.now(),
-      lastHash: 'f1r57-h45h',
-      hash: '11111111111',
-      data: data1,
-      nonce: 1,
-      difficulty: 3,
-    })
-    const newBlock2 = new Block({
-      timestamp: Date.now(),
-      lastHash: '11111111111',
-      hash: '2222222222',
-      data: data2,
-      nonce: 2,
-      difficulty: 4,
-    })
-    const newBlock3 = new Block({
-      timestamp: Date.now(),
-      lastHash: '2222222222',
-      hash: '3333333333',
-      data: data3,
-      nonce: 3,
-      difficulty: 3,
+  describe('isValidChain()', () => {
+    describe('when the chain does not start with the genesis block', () => {
+      it('returns false', () => {
+        blockchain.chain[0] = { data: [] as Array<Transaction> } as Block
+
+        expect(Blockchain.isValidChain(blockchain.chain)).toBe(false)
+      })
     })
 
-    jest
-      .spyOn(Block, 'mineBlock')
-      .mockReturnValueOnce(newBlock1)
-      .mockReturnValueOnce(newBlock2)
-      .mockReturnValueOnce(newBlock3)
+    describe('when the chain starts with the genesis block and has multiple blocks', () => {
+      beforeEach(() => {
+        blockchain.addBlock({ data: [{ id: 'transaction1' }] as Array<Transaction> })
+        blockchain.addBlock({ data: [{ id: 'transaction2' }] as Array<Transaction> })
+        blockchain.addBlock({ data: [{ id: 'transaction3' }] as Array<Transaction> })
+      })
 
-    bc.addBlock({ data: data1 })
-    bc.addBlock({ data: data2 })
-    bc.addBlock({ data: data3 })
+      describe('and a lastHash reference has changed', () => {
+        it('returns false', () => {
+          blockchain.chain[2].lastHash = 'broken-lastHash'
 
-    expect(bc.chain[1].lastHash === bc.chain[0].hash)
-    expect(bc.chain[2].lastHash === bc.chain[1].hash)
-    expect(bc.chain[3].lastHash === bc.chain[2].hash)
+          expect(Blockchain.isValidChain(blockchain.chain)).toBe(false)
+        })
+      })
+
+      describe('and the chain contains a block with an invalid field', () => {
+        it('returns false', () => {
+          blockchain.chain[2].data = [] as Array<Transaction>
+
+          expect(Blockchain.isValidChain(blockchain.chain)).toBe(false)
+        })
+      })
+
+      describe('and the chain contains a block with a jumped difficulty', () => {
+        it('returns false', () => {
+          const lastBlock = blockchain.chain[blockchain.chain.length - 1]
+          const lastHash = lastBlock.hash
+          const timestamp = Date.now()
+          const nonce = 0
+          const data = [] as Array<Transaction>
+          const difficulty = lastBlock.difficulty - 3
+          const hash = Util.genHash(timestamp, lastHash, difficulty, nonce, data)
+          const badBlock = new Block({
+            timestamp,
+            lastHash,
+            hash,
+            nonce,
+            difficulty,
+            data,
+          })
+
+          blockchain.chain.push(badBlock)
+
+          expect(Blockchain.isValidChain(blockchain.chain)).toBe(false)
+        })
+      })
+
+      describe('and the chain does not contain any invalid blocks', () => {
+        it('returns true', () => {
+          expect(Blockchain.isValidChain(blockchain.chain)).toBe(true)
+        })
+      })
+    })
   })
 
-  it('invalidates a chain with a corrupt genesis block', () => {
-    bc2.chain[0].data = (['Hacked data!'] as unknown) as BlockData
+  describe('replaceChain()', () => {
+    let logMock: jest.Mock
 
-    expect(bc.isValidChain(bc2.chain)).toBe(false)
-  })
+    beforeEach(() => {
+      logMock = jest.fn()
 
-  it('invalidates a corrupt chain', () => {
-    bc2.chain[0].data = Block.genesis().data
-    bc2.addBlock({ data: (['Second chain first block'] as unknown) as BlockData })
-    bc2.chain[1].data = (['Corrupt data'] as unknown) as BlockData
-    blockHashSpy = jest.spyOn(Block, 'blockHash').mockReturnValue('2222222222')
-
-    expect(bc.isValidChain(bc2.chain)).toBe(false)
-  })
-
-  it('invalidates a block with jumped difficulty', () => {
-    bc2.addBlock({ data: [] as Array<Transaction> })
-    const lastBlock = bc2.chain[bc2.chain.length - 1]
-    const lastHash = lastBlock.hash
-    const timestamp = Date.now()
-    const nonce = 0
-    const data = [] as Array<Transaction>
-    const difficulty = lastBlock.difficulty - 2
-
-    const hash = Block.genHash({ timestamp, lastHash, data, nonce, difficulty })
-    const badBlock = new Block({ timestamp, lastHash, hash, data, nonce, difficulty })
-
-    bc2.chain.push(badBlock)
-
-    expect(bc.isValidChain(bc2.chain)).toBe(false)
-  })
-
-  it('validates a valid chain', () => {
-    const data = (['Second chain first block'] as unknown) as BlockData
-    const newBlock1 = new Block({
-      timestamp: Date.now(),
-      lastHash: 'f1r57-h45h',
-      hash: '11111111111',
-      data,
-      nonce: 1,
-      difficulty: 3,
+      global.console.log = logMock
     })
 
-    jest.spyOn(Block, 'mineBlock').mockReturnValue(newBlock1)
+    describe('when the new chain is not longer', () => {
+      beforeEach(() => {
+        newChain.chain[0] = ({ new: 'chain' } as unknown) as Block
 
-    blockHashSpy = jest.spyOn(Block, 'blockHash').mockReturnValue('11111111111')
+        blockchain.replaceChain(newChain.chain, false)
+      })
 
-    bc2.addBlock({ data })
+      it('does not replace the chain', () => {
+        expect(blockchain.chain).toEqual(originalChain)
+      })
 
-    expect(bc.isValidChain(bc2.chain)).toBe(true)
-    expect(errorMock).toHaveBeenCalledTimes(0)
-  })
-
-  it('replaces the chain with a valid chain', () => {
-    const data = (['Second chain first block'] as unknown) as BlockData
-    const newBlock1 = new Block({
-      timestamp: Date.now(),
-      lastHash: 'f1r57-h45h',
-      hash: '11111111111',
-      data,
-      nonce: 1,
-      difficulty: 3,
+      it('logs an error', () => {
+        expect(errorMock).toHaveBeenCalled()
+      })
     })
 
-    jest.spyOn(Block, 'mineBlock').mockReturnValue(newBlock1)
+    describe('when the new chain is longer', () => {
+      beforeEach(() => {
+        newChain.addBlock({ data: [{ id: 'transaction1' }] as Array<Transaction> })
+        newChain.addBlock({ data: [{ id: 'transaction2' }] as Array<Transaction> })
+        newChain.addBlock({ data: [{ id: 'transaction3' }] as Array<Transaction> })
+      })
 
-    blockHashSpy = jest.spyOn(Block, 'blockHash').mockReturnValue('11111111111')
+      describe('and the chain is invalid', () => {
+        beforeEach(() => {
+          newChain.chain[2].hash = 'some-fake-hash'
 
-    bc2.addBlock({ data })
+          blockchain.replaceChain(newChain.chain, false)
+        })
 
-    bc.replaceChain(bc2.chain)
+        it('does not replace the chain', () => {
+          expect(blockchain.chain).toEqual(originalChain)
+        })
 
-    expect(bc.chain).toStrictEqual(bc2.chain)
-    expect(errorMock).toHaveBeenCalledTimes(0)
-    expect(logMock).toHaveBeenCalledTimes(1)
+        it('logs an error', () => {
+          expect(errorMock).toHaveBeenCalled()
+        })
+      })
+
+      describe('and the chain is valid', () => {
+        beforeEach(() => {
+          blockchain.replaceChain(newChain.chain, false)
+        })
+
+        it('replaces the chain', () => {
+          expect(blockchain.chain).toEqual(newChain.chain)
+        })
+
+        it('logs about the chain replacement', () => {
+          expect(logMock).toHaveBeenCalled()
+        })
+      })
+    })
+
+    describe('and the `validateTransactions` flag is true', () => {
+      it('calls validTransactionData()', () => {
+        const validTransactionDataMock = jest.fn()
+
+        blockchain.validTransactionData = validTransactionDataMock
+
+        newChain.addBlock({ data: [] as Array<Transaction> })
+        blockchain.replaceChain(newChain.chain, true)
+
+        expect(validTransactionDataMock).toHaveBeenCalled()
+      })
+    })
   })
 
-  it('does not replace the chain with one of less than or equal to length', () => {
-    bc.addBlock({ data: (['First block'] as unknown) as BlockData })
+  describe('validTransactionData()', () => {
+    let transaction: Transaction
+    let rewardTransaction: Transaction
+    let wallet: Wallet
 
-    bc.replaceChain(bc2.chain)
+    beforeEach(() => {
+      wallet = new Wallet()
+      transaction = wallet.createTransaction({ recipient: 'foo-address', amount: 65 })
+      rewardTransaction = Transaction.rewardTransaction({ minerWallet: wallet })
+    })
 
-    expect(bc.chain).not.toStrictEqual(bc2.chain)
-    expect(errorMock).toHaveBeenCalledTimes(1)
+    describe('and the transaction data is valid', () => {
+      it('returns true', () => {
+        newChain.addBlock({ data: [transaction, rewardTransaction] })
+
+        expect(blockchain.validTransactionData({ chain: newChain.chain })).toBe(true)
+        expect(errorMock).not.toHaveBeenCalled()
+      })
+    })
+
+    describe('and the transaction data has multiple rewards', () => {
+      it('returns false and logs an error', () => {
+        newChain.addBlock({ data: [transaction, rewardTransaction, rewardTransaction] })
+
+        expect(blockchain.validTransactionData({ chain: newChain.chain })).toBe(false)
+        expect(errorMock).toHaveBeenCalled()
+      })
+    })
+
+    describe('and the transaction data has at least one malformed outputMap', () => {
+      describe('and the transaction is not a reward transaction', () => {
+        it('returns false and logs an error', () => {
+          transaction.outputMap[wallet.publicKey] = 999999
+
+          newChain.addBlock({ data: [transaction, rewardTransaction] })
+
+          expect(blockchain.validTransactionData({ chain: newChain.chain })).toBe(false)
+          expect(errorMock).toHaveBeenCalled()
+        })
+      })
+
+      describe('and the transaction is a reward transaction', () => {
+        it('returns false and logs an error', () => {
+          rewardTransaction.outputMap[wallet.publicKey] = 999999
+
+          newChain.addBlock({ data: [transaction, rewardTransaction] })
+
+          expect(blockchain.validTransactionData({ chain: newChain.chain })).toBe(false)
+          expect(errorMock).toHaveBeenCalled()
+        })
+      })
+    })
+
+    describe('and the transaction data has at least one malformed input', () => {
+      it('returns false and logs an error', () => {
+        wallet.balance = 9000
+
+        const evilOutputMap = {
+          [wallet.publicKey]: 8900,
+          fooRecipient: 100,
+        }
+
+        const evilTransaction = ({
+          input: {
+            timestamp: Date.now(),
+            amount: wallet.balance,
+            address: wallet.publicKey,
+            signature: wallet.sign(evilOutputMap),
+          },
+          outputMap: evilOutputMap,
+        } as unknown) as Transaction
+
+        newChain.addBlock({ data: [evilTransaction, rewardTransaction] })
+
+        expect(blockchain.validTransactionData({ chain: newChain.chain })).toBe(false)
+        expect(errorMock).toHaveBeenCalled()
+      })
+    })
+
+    describe('and a block contains multiple identical transactions', () => {
+      it('returns false and logs an error', () => {
+        newChain.addBlock({
+          data: [transaction, transaction, transaction, rewardTransaction],
+        })
+
+        expect(blockchain.validTransactionData({ chain: newChain.chain })).toBe(false)
+        expect(errorMock).toHaveBeenCalled()
+      })
+    })
   })
 })

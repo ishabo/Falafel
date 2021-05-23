@@ -1,60 +1,115 @@
 import Block, { BlockData } from './block'
+import Wallet, { Transaction } from '@falafel/wallet'
+import Util from '@falafel/util'
+import { REWARD_INPUT, MINING_REWARD } from '@falafel/constants'
 
 export type Chain = Array<Block>
 
 class Blockchain {
-  public chain: Chain
+  chain: Chain
 
   constructor() {
     this.chain = [Block.genesis()]
   }
 
-  public addBlock({ data }: { data: BlockData }): Block {
-    const lastBlock = this.chain[this.chain.length - 1]
-    const block = Block.mineBlock(lastBlock, data)
-    this.chain.push(block)
+  addBlock({ data }: { data: BlockData }) {
+    const newBlock = Block.mineBlock({
+      lastBlock: this.chain[this.chain.length - 1],
+      data,
+    })
 
-    return block
+    this.chain.push(newBlock)
   }
 
-  public isValidChain(chain: Chain): boolean {
-    const hasTheSameGenesisBlock = JSON.stringify(chain[0]) !== JSON.stringify(this.chain[0])
-    if (hasTheSameGenesisBlock) {
-      return false
+  replaceChain(chain: Chain, validateTransactions: boolean, onSuccess?: () => void) {
+    if (chain.length <= this.chain.length) {
+      console.error('The incoming chain must be longer')
+      return
     }
 
+    if (!Blockchain.isValidChain(chain)) {
+      console.error('The incoming chain must be valid')
+      return
+    }
+
+    if (validateTransactions && !this.validTransactionData({ chain })) {
+      console.error('The incoming chain has invalid data')
+      return
+    }
+
+    if (onSuccess) onSuccess()
+    console.log('replacing chain with', chain)
+    this.chain = chain
+  }
+
+  public validTransactionData({ chain }: { chain: Chain }) {
     for (let i = 1; i < chain.length; i++) {
       const block = chain[i]
-      const lastBlock = chain[i - 1]
-      const lastDifficulty = lastBlock.difficulty
-      if (block.lastHash !== lastBlock.hash || block.hash !== Block.blockHash(block)) {
-        return false
-      }
+      const transactionSet = new Set()
+      let rewardTransactionCount = 0
 
-      if (Math.abs(lastDifficulty - block.difficulty) > 1) {
-        return false
+      for (let transaction of block.data) {
+        if (transaction.input.address === REWARD_INPUT.address) {
+          rewardTransactionCount += 1
+
+          if (rewardTransactionCount > 1) {
+            console.error('Miner rewards exceed limit')
+            return false
+          }
+
+          if (Object.values(transaction.outputMap)[0] !== MINING_REWARD) {
+            console.error('Miner reward amount is invalid')
+            return false
+          }
+        } else {
+          if (!Transaction.validTransaction(transaction)) {
+            console.error('Invalid transaction')
+            return false
+          }
+
+          const trueBalance = Wallet.calculateBalance({
+            chain: this.chain,
+            address: transaction.input.address,
+          })
+
+          if (transaction.input.amount !== trueBalance) {
+            console.error('Invalid input amount', transaction, trueBalance)
+            return false
+          }
+
+          if (transactionSet.has(transaction)) {
+            console.error('An identical transaction appears more than once in the block')
+            return false
+          } else {
+            transactionSet.add(transaction)
+          }
+        }
       }
     }
 
     return true
   }
 
-  public replaceChain(newChain: Chain, onSuccess?: () => void) {
-    if (newChain.length <= this.chain.length) {
-      console.error('Received chain is not longer than the current chain.')
-      return
+  static isValidChain(chain: Chain) {
+    if (JSON.stringify(chain[0]) !== JSON.stringify(Block.genesis())) {
+      return false
     }
 
-    if (!this.isValidChain(newChain)) {
-      console.error('The received chain is not valid.')
-      return
+    for (let i = 1; i < chain.length; i++) {
+      const { timestamp, lastHash, hash, nonce, difficulty, data } = chain[i]
+      const actualLastHash = chain[i - 1].hash
+      const lastDifficulty = chain[i - 1].difficulty
+
+      if (lastHash !== actualLastHash) return false
+
+      const validatedHash = Util.genHash(timestamp, lastHash, data, nonce, difficulty)
+
+      if (hash !== validatedHash) return false
+
+      if (Math.abs(lastDifficulty - difficulty) > 1) return false
     }
 
-    if (onSuccess) {
-      onSuccess()
-    }
-    console.log('Replacing blockchain with the new chain.')
-    this.chain = newChain
+    return true
   }
 }
 
