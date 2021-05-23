@@ -5,7 +5,8 @@
         "packages/blockchain",
         "packages/wallet",
         "packages/util",
-        "packages/app",
+        "packages/server",
+        "packages/client",
         "packages/config/typescript",
         "packages/config/eslint",
         "packages/config/constants"

@@ -2,7 +2,8 @@
   "compilerOptions": {
     "baseUrl": "./packages",
     "path": {
-      "@falafel/app/*":["packages/app/*"],
+      "@falafel/server/*":["packages/server/*"],
+      "@falafel/client/*":["packages/client/*"],
       "@falafel/blockchain/*":["packages/blockchain/*"],
       "@falafel/wallet/*":["packages/wallet/*"],
       "@falafel/typescript-config/*":["packages/config/typescript/*"],

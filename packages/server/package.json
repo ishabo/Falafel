@@ -25,6 +25,7 @@
   "dependencies": {
     "@falafel/blockchain": "workspace:packages/blockchain",
     "@falafel/wallet": "workspace:packages/wallet",
+    "@fontsource/roboto": "^4.3.0",
     "@types/express": "^4.17.11",
     "@types/redis": "^2.8.28",
     "@types/request": "^2.48.5",
