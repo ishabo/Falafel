@@ -1,23 +1,23 @@
 import { Router, Request, Response } from 'express'
 import Blockchain from '@falafel/blockchain'
 import Wallet, { TransactionPool } from '@falafel/wallet'
-import PubSub from './pubsub'
-import RedisPubSub from './pubsub/redisPubSub'
 import TransactionMiner from './transaction-miner'
+import PubSub from './pubsub'
 import {mapToObj} from './utils'
 
 const ApiRouter = ({
   blockchain,
   transactionPool,
   wallet,
+  transactionMiner,
+  pubsub
 }: {
   blockchain: Blockchain
   transactionPool: TransactionPool
   wallet: Wallet
+  transactionMiner: TransactionMiner,
+  pubsub: PubSub
 }) => {
-  const pubSubService = new RedisPubSub({ redisUrl: 'http://localhost:6379' })
-  const pubsub = new PubSub({ blockchain, transactionPool, pubSubService, wallet })
-  const transactionMiner = new TransactionMiner({ blockchain, transactionPool, wallet, pubsub })
 
   const api = Router()
 

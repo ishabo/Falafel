@@ -2035,10 +2035,12 @@ __metadata:
     "@testing-library/jest-dom": ^5.11.4
     "@testing-library/react": ^11.1.0
     "@testing-library/user-event": ^12.1.10
+    "@types/axios": ^0.14.0
     "@types/jest": ^26.0.15
     "@types/node": ^12.0.0
     "@types/react": ^17.0.0
     "@types/react-dom": ^17.0.0
+    axios: ^0.21.1
     react: ^17.0.2
     react-dom: ^17.0.2
     react-scripts: 4.0.3
@@ -2746,6 +2748,15 @@ __metadata:
   version: 4.2.1
   resolution: "@types/aria-query@npm:4.2.1"
   checksum: 1b64d16e09ebb071f9c97a4a0ae0d0f6b573a3c14e9f966d51c9ebfc30d19681782428d7cb4ec75d93aa1b58a857f5f17babbfedeefebc85c4047cf5f6b96d5f
+  languageName: node
+  linkType: hard
+
+"@types/axios@npm:^0.14.0":
+  version: 0.14.0
+  resolution: "@types/axios@npm:0.14.0"
+  dependencies:
+    axios: "*"
+  checksum: aaf4dd6152704956fe58023e884bd965bacbf251db40553faa920f60dffae6f1b7460af4213b16e0de48eeff3bde107fae838285c049c166ebcf0b509ada7c56
   languageName: node
   linkType: hard
 
@@ -4061,6 +4072,15 @@ __metadata:
   version: 4.2.1
   resolution: "axe-core@npm:4.2.1"
   checksum: 6a3f1a9f2d4c8a27aafd044acb2d02d52008ef392aeced4859fcfa85a559347e267eeb9db1f7d5807eda30d895354cdbfeb3437b018b45904e3cc609bf461906
+  languageName: node
+  linkType: hard
+
+"axios@npm:*, axios@npm:^0.21.1":
+  version: 0.21.1
+  resolution: "axios@npm:0.21.1"
+  dependencies:
+    follow-redirects: ^1.10.0
+  checksum: 864fb7b5d077d236737f10adca53bf451a93f35a15271f56fba8da07265a02d26b7d881b935a6697dc6adb0549ea3e56d2eecb403edaa3bb78f6479901c10f69
   languageName: node
   linkType: hard
 
@@ -7472,6 +7492,16 @@ __metadata:
   dependencies:
     debug: ^3.0.0
   checksum: e8d884d0da932dcf64f8f45769f22cdb38a4ad7a889017e1221f4d306ed2dbfdc6c9ce2261dee82727fe5e0272a7b17761068fcff5709d34b453f0400414ea94
+  languageName: node
+  linkType: hard
+
+"follow-redirects@npm:^1.10.0":
+  version: 1.14.1
+  resolution: "follow-redirects@npm:1.14.1"
+  peerDependenciesMeta:
+    debug:
+      optional: true
+  checksum: 761a18699688b19d66b3e9199ecaf9cd39ede953f3529299c7fca4190b27b855c17c491170977844d5db5e169ffc35ebae999bb0833e9c9c61988d19c20ae7ab
   languageName: node
   linkType: hard
 
