@@ -2,7 +2,7 @@ import React from 'react';
 import { Grid, Button, FormControl, Input, InputLabel } from '@material-ui/core'
 import Alert from '@material-ui/lab/Alert';
 import { makeStyles } from '@material-ui/core/styles'
-import { transact } from '../../services/wallet'
+import { transact } from '../../services'
 import Layout from '../Layout'
 
 const useStyles = makeStyles((theme) => ({

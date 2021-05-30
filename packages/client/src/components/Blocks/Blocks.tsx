@@ -1,9 +1,8 @@
 import React from 'react';
-import { Box, Typography, Accordion, AccordionSummary, AccordionDetails } from '@material-ui/core'
+import { Typography, Accordion, AccordionSummary, AccordionDetails } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import { getBlocks } from '../../services/blocks';
-import { Block as BlockType } from '../../services/blocks/types';
+import { getBlocks,  Block as BlockType  } from '../../services';
 import Block from '../Block'
 import Layout from '../Layout'
 

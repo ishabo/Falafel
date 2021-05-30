@@ -1,6 +1,6 @@
 import React from 'react';
 import { Typography, Grid } from '@material-ui/core'
-import { getWalletInfo } from '../../services/wallet';
+import { getWalletInfo } from '../../services';
 import { toCurrency } from '../../utils'
 import { makeStyles } from '@material-ui/core/styles';
 

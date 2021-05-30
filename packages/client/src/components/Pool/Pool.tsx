@@ -1,31 +1,28 @@
 import React from 'react';
 import {Grid } from '@material-ui/core'
-// import { makeStyles } from '@material-ui/core/styles';
-import {getTransactionPool} from '../../services/wallet';
-import {Transaction as TransactionType} from '../../services/wallet/types';
+import { getTransactionPool, Transaction as TransactionType } from '../../services'
 import Layout from '../Layout'
 import Transaction from '../Transaction'
+import useInterval from '../../hooks/useInterval'
 
-// const useStyles = makeStyles((theme) => ({
-//   paper: {
-//     padding: theme.spacing(2),
-//     color: theme.palette.text.secondary,
-//   },
-// }));
+const POLL_INTERVAL = 10000
 
 const Pool = () => {
-  const [transactionPoolMap, setTransactionPoolMap] = React.useState<Record<string, TransactionType>>({});
-  // const classes = useStyles()
+  const [transactionPoolMap, setTransactionPoolMap] = React.useState<Record<string, TransactionType>>({})
+
+
+  const getTransactionPoolMap = async () => {
+    const info = await getTransactionPool()
+    if (info) {
+      setTransactionPoolMap(info)
+    }
+  }
 
   React.useEffect(() => {
-    (async () => {
-      const info = await getTransactionPool();
-      if (info) {
-        setTransactionPoolMap(info)
-      }
-    })()
+    getTransactionPoolMap()
   }, [])
 
+  useInterval(getTransactionPoolMap, POLL_INTERVAL)
 
   return (
     <Layout title="Transaction pool">

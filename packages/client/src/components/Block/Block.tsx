@@ -1,7 +1,7 @@
 import React from 'react';
 import { Typography, TypographyProps, Grid, Paper, Button, Divider } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles';
-import { Block as BlockType } from '../../services/blocks/types';
+import { Block as BlockType } from '../../services';
 import Transaction from '../Transaction'
 
 const useStyles = makeStyles((theme) => ({

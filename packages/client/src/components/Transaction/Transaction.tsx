@@ -1,7 +1,7 @@
 import React from 'react';
 import {  Box, Grid } from '@material-ui/core'
 import { toCurrency } from '../../utils'
-import { Transaction as TransactionType } from '../../services/wallet/types';
+import { Transaction as TransactionType } from '../../services';
 
 const Transaction = ({ transaction }: {transaction: TransactionType}) => {
 
