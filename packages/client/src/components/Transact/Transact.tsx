@@ -29,7 +29,6 @@ const Transact = () => {
     setAmount(Number(event.target.value));
   };
 
-
   const handleSubmit = async () => {
     if (recipient && amount > 0) {
       try {

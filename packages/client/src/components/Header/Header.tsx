@@ -1,7 +1,6 @@
 import React from 'react';
-import { Grid, AppBar, Link, Toolbar, IconButton, Typography, InputBase, Divider  } from '@material-ui/core'
+import { Grid, AppBar, Link, Toolbar, Typography, InputBase, Divider  } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles';
-import MenuIcon from '@material-ui/icons/Menu'
 import SearchIcon from '@material-ui/icons/Search'
 
 const useStyles = makeStyles((theme) => ({
@@ -75,14 +74,6 @@ const Header = () => {
         <Toolbar>
           <Grid container direction="row"  alignItems="center">
             <Grid item xs={1} sm={6}>
-              <IconButton
-                edge="start"
-                className={classes.menuButton}
-                color="inherit"
-                aria-label="open drawer"
-              >
-                <MenuIcon />
-              </IconButton>
               <Typography className={classes.title} variant="h6" noWrap>
                 Falafel
               </Typography>
