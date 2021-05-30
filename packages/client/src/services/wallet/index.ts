@@ -5,3 +5,9 @@ export const getWalletInfo = async () => {
 
   return response.data
 }
+
+export const transact = async ({ recipient, amount } : {recipient: string; amount: number}) => {
+  const response = await axiosInstance.post('/transact', { recipient, amount })
+
+  return response.data
+}

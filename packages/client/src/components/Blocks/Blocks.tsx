@@ -1,36 +1,35 @@
 import React from 'react';
-import { Typography, Grid, Paper } from '@material-ui/core'
+import { Box, Typography, Accordion, AccordionSummary, AccordionDetails } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import { getBlocks } from '../../services/blocks';
-import { Block } from '../../services/blocks/types';
+import { Block as BlockType } from '../../services/blocks/types';
+import Block from '../Block'
+import Layout from '../Layout'
 
 const useStyles = makeStyles((theme) => ({
-  root: {
-    flexGrow: 1,
-  },
-  paper: {
-    padding: theme.spacing(2),
-    color: theme.palette.text.secondary,
+  heading: {
+    fontSize: theme.typography.pxToRem(15),
+    fontWeight: theme.typography.fontWeightRegular,
   },
 }));
 
-const DisplayBlock = ({ block : { hash, lastHash, timestamp }}: {block: Block}) => {
+const BlockTitle: React.FC<{block: BlockType, order: number}> = ({block, order }) => {
   const classes = useStyles();
-  return (
-      <Grid container spacing={3}>
-        <Grid item>
-          <Paper className={classes.paper}>
-              <div>Time: {timestamp === 1 ? 'Genesis Block' : new Date(timestamp).toLocaleString()}</div>
-              <div>Hash: {hash}</div>
-              <div>Last Hash: {lastHash}</div>
-          </Paper>
-        </Grid>
-        </Grid>
-  )
+  let title = `${block.lastHash.substring(0, 32)} <- ${block.hash.substring(0, 32)}...`
+  if (order === 1) {
+    title = 'The Gensis'
+  } else if (order === 2) {
+    title = `Genesis Hash <- ${block.hash.substring(0, 32)}...`
+  }
+
+  return (<Typography className={classes.heading}>{title}</Typography>)
 }
 
 const Blocks = () => {
-  const [blocks, setBlocks] = React.useState<undefined | Array<Block>>(undefined);
+  const [blocks, setBlocks] = React.useState<BlockType[]>([]);
+  const [expanded, setExpanded] = React.useState<string | undefined>(undefined);
+
 
   React.useEffect(() => {
     (async () => {
@@ -41,14 +40,27 @@ const Blocks = () => {
     })()
   }, [])
 
+  const handleChange = (panel: string) => (e: React.ChangeEvent<any>, isExpanded: boolean) => {
+    setExpanded(isExpanded ? panel : undefined);
+  }
+
   return (
-    <Grid container spacing={1}>
-      <Grid item><Typography variant="h1" component="h4"></Typography></Grid>
-      <Grid item xs={12}>
-          <Typography variant="h2" component="h4">Blocks</Typography>
-          {blocks && blocks.map(block => (<DisplayBlock key={block.hash} block={block}/>))}
-      </Grid>
-    </Grid>
+    <Layout title="Blocks">
+        {blocks && blocks.map((block, index) => (
+          <Accordion key={block.hash} expanded={expanded === block.hash} onChange={handleChange(block.hash)}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls={`${block.hash}-content`}
+              id={`${block.hash}-header`}
+            >
+            <BlockTitle block={block} order={index + 1} />
+            </AccordionSummary>
+            <AccordionDetails>
+              <Block key={block.hash} block={block}/>
+            </AccordionDetails>
+          </Accordion>
+          ))}
+    </Layout>
   );
 }
 

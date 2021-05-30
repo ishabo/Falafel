@@ -10,12 +10,9 @@
     "format:fix": "../../node_modules/.bin/prettier --write './{.,**}/*.{ts,js,json}'"
   },
   "dependencies": {
-    "@falafel/util": "workspace:packages/util",
     "@types/elliptic": "^6.4.12"
   },
   "devDependencies": {
-    "@falafel/eslint-config": "workspace:packages/config/eslint",
-    "@falafel/typescript-config": "workspace:packages/config/typescript",
     "@types/jest": "^26.0.22",
     "jest": "^26.6.3",
     "nodemon": "^2.0.7",
