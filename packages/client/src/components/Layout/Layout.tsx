@@ -11,8 +11,11 @@ const useStyles = makeStyles((theme) => ({
   },
   main: {
     top: -64,
-    position: 'absolute'
+    position: 'absolute',
+    left: '50%',
+    transform: 'translate(-50%, 0)'
   },
+
   section: {
     marginTop: 64,
     backgroundColor: theme.palette.primary.main,

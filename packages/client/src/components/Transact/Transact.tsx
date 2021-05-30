@@ -13,7 +13,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-const ConductTransaction = () => {
+const Transact = () => {
   const [recipient, setRecipient] = React.useState('');
   const [amount, setAmount] = React.useState(0);
   const [responseMessage, setResponseMessage] = React.useState('');
@@ -81,4 +81,4 @@ const ConductTransaction = () => {
   )
 }
 
-export default ConductTransaction
+export default Transact

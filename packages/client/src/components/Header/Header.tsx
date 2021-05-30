@@ -100,6 +100,9 @@ const Header = () => {
                     <Link href="/send" color="inherit">
                       Send
                     </Link>
+                    <Link href="/pool" color="inherit">
+                      Pool
+                    </Link>
                     <Divider orientation="vertical" flexItem />
                   </div>
                 </Grid>

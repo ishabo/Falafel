@@ -11,3 +11,10 @@ export const transact = async ({ recipient, amount } : {recipient: string; amoun
 
   return response.data
 }
+
+export const getTransactionPool = async () => {
+  const response = await axiosInstance.get('/transaction-pool-map')
+
+  return response.data
+}
+
